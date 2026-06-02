@@ -2,9 +2,11 @@ import { createVideoScanner } from '../lib/video-scanner.js';
 
 export default defineContentScript({
   matches: ['<all_urls>'],
+  allFrames: true,
+  matchOriginAsFallback: true,
   runAt: 'document_idle',
   main() {
-    const scanner = createVideoScanner(() => document.title);
+    const scanner = createVideoScanner();
 
     (window as unknown as { __mochiCastScanner?: typeof scanner }).__mochiCastScanner = scanner;
 
@@ -45,6 +47,7 @@ export default defineContentScript({
           pageTitle: document.title,
           pageUrl: location.href,
           hints: scanner.getHints(),
+          frameMeta: scanner.getFrameMeta?.(),
         });
       }
       return false;

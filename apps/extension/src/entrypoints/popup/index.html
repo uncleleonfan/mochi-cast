@@ -13,7 +13,9 @@
           <img src="/icon.svg" alt="" class="logo" width="28" height="28" />
           <h1 class="title" data-i18n="title">麻薯投屏</h1>
         </div>
-        <button type="button" id="btn-refresh" class="icon-btn" title="刷新">↻</button>
+        <button type="button" id="link-options" class="icon-btn icon-btn--text" data-i18n="settings">
+          设置
+        </button>
       </header>
 
       <p id="page-title" class="page-title"></p>
@@ -31,7 +33,7 @@
             type="text"
             id="manual-ip"
             class="input"
-            placeholder="192.168.1.100 或 :49152/description.xml"
+            placeholder="请输入电视机IP地址"
             autocomplete="off"
           />
           <button type="button" id="btn-add-ip" class="btn secondary" data-i18n="addIp">
@@ -44,7 +46,13 @@
       </section>
 
       <section class="section">
-        <h2 data-i18n="videos">检测到的视频</h2>
+        <div class="section-head">
+          <h2 data-i18n="videos">检测到的视频</h2>
+          <div class="section-head-actions">
+            <span id="video-scan-status" class="scan-badge" title="">—</span>
+            <button type="button" id="btn-video-refresh" class="link-btn" title="刷新视频检测">↻</button>
+          </div>
+        </div>
         <ul id="video-list" class="video-list"></ul>
         <p id="video-hint" class="hint hidden" data-i18n="videoHint">
           请先在网页中播放视频，或全屏后再刷新
@@ -54,7 +62,7 @@
             type="url"
             id="manual-video-url"
             class="input"
-            placeholder="https://…/video.mp4（B站需 http 直链，非 blob）"
+            placeholder="请输入视频链接"
             autocomplete="off"
           />
           <button type="button" id="btn-add-video" class="btn secondary" data-i18n="addVideoUrl">
@@ -75,9 +83,6 @@
         <p id="status" class="status"></p>
       </section>
 
-      <footer class="footer">
-        <a href="#" id="link-options" data-i18n="settings">设置</a>
-      </footer>
     </div>
     <script type="module" src="./main.ts"></script>
   </body>

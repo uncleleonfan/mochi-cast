@@ -16,7 +16,26 @@ export interface DetectedVideo {
   url: string;
   title?: string;
   mimeType?: string;
-  source: 'video-element' | 'source-tag' | 'network' | 'page-link';
+  source:
+    | 'video-element'
+    | 'source-tag'
+    | 'network'
+    | 'page-link'
+    | 'iframe-src'
+    | 'page-query'
+    | 'script-json';
+}
+
+export interface VideoScanDiagnostics {
+  state: 'scanning' | 'found' | 'empty' | 'restricted' | 'error';
+  videoCount: number;
+  framesScanned: number;
+  iframeCount: number;
+  videoElementCount: number;
+  blobVideoCount: number;
+  htmlMediaHits: number;
+  pageUrl?: string;
+  error?: string;
 }
 
 export interface AppSettings {
@@ -100,6 +119,7 @@ export interface MessageResponses {
     pageUrl?: string;
     error?: string;
     hints?: { blobVideoCount: number; isBilibili: boolean };
+    scan?: VideoScanDiagnostics;
   };
   GET_SETTINGS: AppSettings;
   SAVE_SETTINGS: AppSettings;

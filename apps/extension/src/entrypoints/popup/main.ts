@@ -1,6 +1,7 @@
 import type { DlnaDevice } from '@mochi-cast/dlna-core';
-import { isCastableUrl } from '../../lib/video-scanner.js';
-import type { AppSettings, DetectedVideo } from '../../shared/messages.js';
+import { isCastableUrl, normalizeHttpUrl } from '../../lib/video-scanner.js';
+import { buildVideoTitle, episodeLabelFromUrl } from '../../lib/video-title.js';
+import type { AppSettings, DetectedVideo, VideoScanDiagnostics } from '../../shared/messages.js';
 
 const STRINGS = {
   zh: {
@@ -10,14 +11,21 @@ const STRINGS = {
     selectDevice: '选择设备…',
     addIp: '添加 IP',
     deviceHint:
-      '自动扫描可能找不到电视（Chrome 无法 SSDP）。可在设置填网段、或下方手动添加 IP',
+      '自动扫描可能找不到电视，可手动添加 IP',
     videos: '检测到的视频',
-    videoHint: '请先在网页中播放视频，再点 ↻ 刷新；或下方粘贴 MP4 直链',
+    videoHint: '请先在网页中播放视频，再点 ↻ 刷新（会扫描 iframe 内播放器）；或下方粘贴 m3u8/MP4 直链',
     addVideoUrl: '添加链接',
     videoUrlAdded: '已添加视频链接',
     videoUrlInvalid: '请输入可访问的 http(s) 视频直链（不支持 blob/YouTube）',
-    videoScanRestricted: '无法在此页面检测视频，请打开普通网页或粘贴直链',
-    videoScanEmpty: '未检测到直链。先播放视频再刷新，或粘贴 MP4 URL',
+    videoScanRestricted: '无法在此页面检测视频，请打开视频网页或粘贴直链',
+    videoScanEmpty: '未检测到视频链接',
+    videoScanning: '检测中…',
+    videoScanFound: '已找到 {n}',
+    videoScanEmptyBadge: '未找到',
+    videoScanRestrictedBadge: '不可检测',
+    videoScanErrorBadge: '检测失败',
+    videoScanTimeout: '检测超时',
+    videoScanTimeoutHint: '页面 iframe 过多或较慢，请用下方粘贴 m3u8/MP4 直链',
     videoBlobBilibili:
       'B 站播放器使用 blob 地址，电视无法直接拉流。请播放后点 ↻；若仍无列表，请用下方粘贴 bilibili 返回的 http 直链（或换 MP4 测试页）',
     videoBlobOnly:
@@ -46,12 +54,19 @@ const STRINGS = {
     deviceHint:
       'Auto-scan may miss your TV (no SSDP in Chrome). Set subnet in Settings or add IP below',
     videos: 'Detected Videos',
-    videoHint: 'Play the video, click ↻ refresh, or paste an MP4 URL below',
+    videoHint: 'Play the video, click ↻ refresh (scans iframes), or paste m3u8/MP4 below',
     addVideoUrl: 'Add URL',
     videoUrlAdded: 'Video URL added',
     videoUrlInvalid: 'Enter an http(s) direct video URL (no blob/YouTube)',
     videoScanRestricted: 'Cannot scan this page — open a normal web page or paste a URL',
-    videoScanEmpty: 'No direct URL found. Play the video and refresh, or paste an MP4 link',
+    videoScanEmpty: 'No URL found. If the player is in an iframe, play then refresh, or paste m3u8/MP4',
+    videoScanning: 'Scanning…',
+    videoScanFound: 'Found {n}',
+    videoScanEmptyBadge: 'Not found',
+    videoScanRestrictedBadge: 'Blocked',
+    videoScanErrorBadge: 'Scan failed',
+    videoScanTimeout: 'Timed out',
+    videoScanTimeoutHint: 'Too many/slow iframes — paste m3u8/MP4 URL below',
     videoBlobBilibili:
       'Bilibili uses blob URLs in the player. Play the video and refresh; if still empty, paste an http direct URL below (or use an MP4 test page)',
     videoBlobOnly:
@@ -66,7 +81,7 @@ const STRINGS = {
     deviceAdded: 'Device added',
     deviceNotFound: 'No DLNA device at this IP',
     scanDoneNoDevices:
-      'No TV found. Add your TV IP below, or enable debug in settings to inspect logs',
+      'No TV found. Add your TV IP above.',
     reconnecting: 'Reconnecting to last TV…',
     connected: 'Connected',
     lastDeviceOffline: 'Last TV is offline; still listed for retry',
@@ -88,6 +103,76 @@ let selectedVideoUrl = '';
 let lastDeviceIpHint = '';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+
+const VIDEO_SCAN_POPUP_TIMEOUT_MS = 12_000;
+
+type VideoScanResponse = {
+  videos: DetectedVideo[];
+  pageTitle?: string;
+  pageUrl?: string;
+  error?: string;
+  hints?: { blobVideoCount: number; isBilibili: boolean };
+  scan?: VideoScanDiagnostics;
+};
+
+async function queryActiveTabId(): Promise<number | undefined> {
+  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  return tab?.id;
+}
+
+async function fetchVideosWithTimeout(): Promise<VideoScanResponse> {
+  const tabId = await queryActiveTabId();
+  return Promise.race([
+    sendMessage<VideoScanResponse>('GET_VIDEOS', tabId != null ? { tabId } : undefined),
+    new Promise<VideoScanResponse>((_, reject) => {
+      setTimeout(() => reject(new Error('scan_timeout')), VIDEO_SCAN_POPUP_TIMEOUT_MS);
+    }),
+  ]);
+}
+
+function applyVideoScanResult(videoRes: VideoScanResponse) {
+  videos = videoRes.videos;
+  if (videoRes.pageTitle) $('page-title').textContent = videoRes.pageTitle;
+  renderVideos();
+  setVideoScanStatus(
+    videoRes.scan ?? {
+      state: videos.length > 0 ? 'found' : 'empty',
+      videoCount: videos.length,
+      framesScanned: 0,
+      iframeCount: 0,
+      videoElementCount: 0,
+      blobVideoCount: videoRes.hints?.blobVideoCount ?? 0,
+      htmlMediaHits: 0,
+      pageUrl: videoRes.pageUrl,
+      error: videoRes.error,
+    },
+  );
+  const hint = $('video-hint');
+  if (videos.length === 0) {
+    hint.classList.remove('hidden');
+    hint.textContent = videoHintForScan(videoRes.error, videoRes.hints);
+  } else {
+    hint.classList.add('hidden');
+  }
+}
+
+function applyVideoScanError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  const isTimeout = message === 'scan_timeout';
+  setVideoScanStatus({
+    state: 'error',
+    videoCount: 0,
+    framesScanned: 0,
+    iframeCount: 0,
+    videoElementCount: 0,
+    blobVideoCount: 0,
+    htmlMediaHits: 0,
+    error: message,
+  });
+  const hint = $('video-hint');
+  hint.classList.remove('hidden');
+  hint.textContent = isTimeout ? t('videoScanTimeoutHint') : message;
+}
 
 async function sendMessage<T>(type: string, payload?: unknown): Promise<T> {
   const response = (await chrome.runtime.sendMessage({ type, payload })) as MessageResult<T>;
@@ -111,6 +196,59 @@ function setStatus(text: string, isError = false) {
   const el = $('status');
   el.textContent = text;
   el.classList.toggle('error', isError);
+}
+
+function setVideoScanStatus(scan?: VideoScanDiagnostics, scanning = false) {
+  const el = $('video-scan-status');
+  if (scanning) {
+    el.textContent = t('videoScanning');
+    el.className = 'scan-badge scanning';
+    el.title = t('videoScanning');
+    return;
+  }
+  if (!scan) {
+    el.textContent = '—';
+    el.className = 'scan-badge';
+    el.title = '';
+    return;
+  }
+
+  el.title = '';
+
+  switch (scan.state) {
+    case 'found':
+      el.textContent = t('videoScanFound').replace('{n}', String(scan.videoCount));
+      el.className = 'scan-badge found';
+      break;
+    case 'restricted':
+      el.textContent = t('videoScanRestrictedBadge');
+      el.className = 'scan-badge error';
+      break;
+    case 'error':
+      el.textContent =
+        scan.error === 'scan_timeout' ? t('videoScanTimeout') : t('videoScanErrorBadge');
+      el.className = 'scan-badge error';
+      break;
+    default:
+      el.textContent = t('videoScanEmptyBadge');
+      el.className = 'scan-badge empty';
+      break;
+  }
+}
+
+type DeviceConnectionStatus = 'online' | 'offline' | 'none';
+
+function applyConnectionStatus(
+  deviceCount: number,
+  lastDeviceStatus: DeviceConnectionStatus = 'none',
+) {
+  if (lastDeviceStatus === 'online' || deviceCount > 0) {
+    setStatus(t('connected'));
+  } else if (lastDeviceStatus === 'offline') {
+    setStatus(t('lastDeviceOffline'), true);
+  } else {
+    setStatus(t('deviceHint'));
+  }
 }
 
 function resolveDeviceIdToSelect(): string {
@@ -196,6 +334,7 @@ function videoHintForScan(
   error?: string,
   hints?: { blobVideoCount: number; isBilibili: boolean },
 ): string {
+  if (error === 'scan_timeout') return t('videoScanTimeoutHint');
   if (error === 'restricted_page' || error === 'no_active_tab') return t('videoScanRestricted');
   if (hints && hints.blobVideoCount > 0) {
     return hints.isBilibili ? t('videoBlobBilibili') : t('videoBlobOnly');
@@ -216,55 +355,73 @@ async function loadData() {
   if (cachedRes.lastDeviceId) settings.lastDeviceId = cachedRes.lastDeviceId;
   if (cachedRes.lastDeviceIp) lastDeviceIpHint = cachedRes.lastDeviceIp;
   renderDevices();
-  if (devices.length > 0) {
-    setStatus(t('connected'));
-  } else {
-    setStatus(t('deviceHint'));
-  }
+  applyConnectionStatus(devices.length);
 
   const shouldReconnect = Boolean(settings.lastDeviceId);
-  if (shouldReconnect) setStatus(t('reconnecting'));
+  // Only show "reconnecting" when there is no cached device yet (avoid masking "已连接").
+  if (shouldReconnect && devices.length === 0) {
+    setStatus(t('reconnecting'));
+  }
 
-  const [deviceRes, videoRes] = await Promise.all([
-    shouldReconnect
-      ? sendMessage<{
-          devices: DlnaDevice[];
-          lastDeviceStatus?: 'online' | 'offline' | 'none';
-          lastDeviceId?: string;
-          lastDeviceIp?: string;
-        }>('GET_DEVICES', { reconnectLast: true })
-      : Promise.resolve({
-          devices: cachedRes.devices,
-          lastDeviceStatus: 'none' as const,
-          lastDeviceId: cachedRes.lastDeviceId,
-          lastDeviceIp: cachedRes.lastDeviceIp,
-        }),
-    sendMessage<{
-      videos: DetectedVideo[];
-      pageTitle?: string;
-      error?: string;
-      hints?: { blobVideoCount: number; isBilibili: boolean };
-    }>('GET_VIDEOS'),
+  type DevicesResponse = {
+    devices: DlnaDevice[];
+    lastDeviceStatus?: DeviceConnectionStatus;
+    lastDeviceId?: string;
+    lastDeviceIp?: string;
+  };
+
+  setVideoScanStatus(undefined, true);
+
+  const videosPromise = fetchVideosWithTimeout()
+    .then((res) => {
+      applyVideoScanResult(res);
+      return res;
+    })
+    .catch((err) => {
+      applyVideoScanError(err);
+      throw err;
+    });
+
+  const devicesPromise: Promise<DevicesResponse> = shouldReconnect
+    ? sendMessage<DevicesResponse>('GET_DEVICES', { reconnectLast: true }).then((res) => {
+        devices = res.devices;
+        if (res.lastDeviceId) settings.lastDeviceId = res.lastDeviceId;
+        if (res.lastDeviceIp) lastDeviceIpHint = res.lastDeviceIp;
+        renderDevices();
+        applyConnectionStatus(devices.length, res.lastDeviceStatus ?? 'none');
+        return res;
+      })
+    : Promise.resolve({
+        devices: cachedRes.devices,
+        lastDeviceStatus: 'none' as const,
+        lastDeviceId: cachedRes.lastDeviceId,
+        lastDeviceIp: cachedRes.lastDeviceIp,
+      });
+
+  const [deviceRes] = await Promise.all([
+    devicesPromise,
+    videosPromise.catch(() => ({
+      videos: [] as DetectedVideo[],
+    })),
   ]);
 
   devices = deviceRes.devices;
-  videos = videoRes.videos;
   if (deviceRes.lastDeviceId) settings.lastDeviceId = deviceRes.lastDeviceId;
   if (deviceRes.lastDeviceIp) lastDeviceIpHint = deviceRes.lastDeviceIp;
-  if (videoRes.pageTitle) $('page-title').textContent = videoRes.pageTitle;
   renderDevices();
-  if (deviceRes.lastDeviceStatus === 'online' || devices.length > 0) {
-    setStatus(t('connected'));
-  } else if (deviceRes.lastDeviceStatus === 'offline') {
-    setStatus(t('lastDeviceOffline'), true);
-  } else if (devices.length === 0) {
-    setStatus(t('deviceHint'));
+  if (!shouldReconnect) {
+    applyConnectionStatus(devices.length, deviceRes.lastDeviceStatus ?? 'none');
   }
-  renderVideos();
-  if (videos.length === 0) {
-    const hint = $('video-hint');
-    hint.classList.remove('hidden');
-    hint.textContent = videoHintForScan(videoRes.error, videoRes.hints);
+}
+
+/** Rescan videos only (header ↻ also runs full loadData). */
+async function refreshVideos() {
+  setVideoScanStatus(undefined, true);
+  try {
+    const videoRes = await fetchVideosWithTimeout();
+    applyVideoScanResult(videoRes);
+  } catch (e) {
+    applyVideoScanError(e);
   }
 }
 
@@ -275,15 +432,31 @@ function addManualVideoUrl() {
     setStatus(t('videoUrlInvalid'), true);
     return;
   }
+  const normalized = normalizeHttpUrl(raw) ?? raw;
+  const ep = episodeLabelFromUrl(normalized);
+  const pageTitle = $('page-title').textContent?.trim() || '';
   const entry: DetectedVideo = {
-    url: raw,
-    title: new URL(raw).pathname.split('/').pop() || raw,
+    url: normalized,
+    title: buildVideoTitle(normalized, {
+      documentTitle: pageTitle || document.title,
+      vodName: pageTitle || undefined,
+      urlLabels: ep ? new Map([[normalized, ep]]) : new Map(),
+    }),
     source: 'page-link',
   };
   videos = [...videos.filter((v) => v.url !== raw), entry];
   selectedVideoUrl = raw;
   $<HTMLInputElement>('manual-video-url').value = '';
   renderVideos();
+  setVideoScanStatus({
+    state: 'found',
+    videoCount: videos.length,
+    framesScanned: 0,
+    iframeCount: 0,
+    videoElementCount: 0,
+    blobVideoCount: 0,
+    htmlMediaHits: 0,
+  });
   setStatus(t('videoUrlAdded'));
 }
 
@@ -380,7 +553,7 @@ function enablePlaybackControls(enabled: boolean) {
 }
 
 function bindEvents() {
-  $('btn-refresh').addEventListener('click', () => loadData());
+  $('btn-video-refresh').addEventListener('click', () => void refreshVideos());
   $('btn-scan').addEventListener('click', () => scanDevices());
   $('btn-add-ip').addEventListener('click', () => addManualIp());
   $('btn-add-video').addEventListener('click', () => addManualVideoUrl());

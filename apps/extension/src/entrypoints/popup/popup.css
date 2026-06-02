@@ -77,6 +77,13 @@ body {
   background: var(--border);
 }
 
+.icon-btn--text {
+  width: auto;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .page-title {
   font-size: 11px;
   color: var(--muted);
@@ -99,12 +106,53 @@ body {
   margin-bottom: 8px;
 }
 
+.section-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .section h2 {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--muted);
+  margin: 0;
+}
+
+.scan-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: var(--bg);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.scan-badge.scanning {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.scan-badge.found {
+  color: #2f855a;
+  border-color: color-mix(in srgb, #2f855a 35%, transparent);
+}
+
+.scan-badge.empty {
+  color: var(--muted);
+}
+
+.scan-badge.error {
+  color: #c53030;
+  border-color: color-mix(in srgb, #c53030 35%, transparent);
 }
 
 .select,
@@ -225,13 +273,3 @@ body {
   color: #c53030;
 }
 
-.footer {
-  text-align: center;
-  padding-top: 4px;
-}
-
-.footer a {
-  color: var(--accent);
-  font-size: 12px;
-  text-decoration: none;
-}

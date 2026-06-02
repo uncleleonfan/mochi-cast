@@ -188,6 +188,6 @@ async function handleMessage<T extends MessageType>(
 }
 
 async function getActiveTabId(): Promise<number | undefined> {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   return tab?.id;
 }
