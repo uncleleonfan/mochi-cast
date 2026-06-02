@@ -39,34 +39,93 @@ interface NetworkInterface {
   name: string;
 }
 
-type SystemNetwork = {
-  getNetworkInterfaces: (callback: (interfaces: NetworkInterface[]) => void) => void;
-};
+/** Common /24 prefixes when automatic detection is unavailable (Windows desktop). */
+const COMMON_SUBNET_PREFIXES = ['192.168.1', '192.168.0', '192.168.31', '10.0.0'];
 
-export async function getLocalSubnetPrefix(): Promise<string | null> {
-  const network = (chrome.system as { network?: SystemNetwork }).network;
-  if (!network?.getNetworkInterfaces) {
-    return null;
-  }
+function prefixFromIpv4(address: string): string | null {
+  if (!address || address.startsWith('127.')) return null;
+  if (address.includes(':')) return null;
+  const parts = address.split('.');
+  if (parts.length !== 4) return null;
+  return `${parts[0]}.${parts[1]}.${parts[2]}`;
+}
+
+/** Chrome OS only — chrome.system is undefined on Windows/macOS extensions. */
+async function getPrefixFromChromeSystem(): Promise<string | null> {
+  type GetNetworkInterfaces = (
+    callback: (interfaces: NetworkInterface[]) => void,
+  ) => void;
+  const system = chrome.system as { network?: { getNetworkInterfaces: GetNetworkInterfaces } } | undefined;
+  const getInterfaces = system?.network?.getNetworkInterfaces;
+  if (!getInterfaces) return null;
 
   return new Promise((resolve) => {
-    network.getNetworkInterfaces((interfaces) => {
-      if (chrome.runtime.lastError || !interfaces?.length) {
+    try {
+      getInterfaces((interfaces: NetworkInterface[]) => {
+        if (chrome.runtime.lastError || !interfaces?.length) {
+          resolve(null);
+          return;
+        }
+        for (const iface of interfaces) {
+          const prefix = prefixFromIpv4(iface.address);
+          if (prefix) {
+            resolve(prefix);
+            return;
+          }
+        }
         resolve(null);
-        return;
-      }
-
-      for (const iface of interfaces) {
-        if (!iface.address || iface.address.startsWith('127.')) continue;
-        if (iface.address.includes(':')) continue; // skip IPv6
-        const parts = iface.address.split('.');
-        if (parts.length !== 4) continue;
-        resolve(`${parts[0]}.${parts[1]}.${parts[2]}`);
-        return;
-      }
+      });
+    } catch {
       resolve(null);
-    });
+    }
   });
+}
+
+/** Best-effort local IPv4 detection via ICE candidates (works on some desktop builds). */
+async function getPrefixFromWebRtc(): Promise<string | null> {
+  if (typeof RTCPeerConnection === 'undefined') return null;
+
+  try {
+    const pc = new RTCPeerConnection({ iceServers: [] });
+    pc.createDataChannel('mochi-cast-probe');
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    return await new Promise<string | null>((resolve) => {
+      const timeout = setTimeout(() => {
+        pc.close();
+        resolve(null);
+      }, 2500);
+
+      pc.onicecandidate = (event) => {
+        const candidate = event.candidate?.candidate ?? '';
+        const match = candidate.match(/(\d+\.\d+\.\d+)\.\d+/);
+        if (match) {
+          clearTimeout(timeout);
+          pc.close();
+          resolve(match[1]);
+        }
+      };
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function getLocalSubnetPrefixes(): Promise<string[]> {
+  const prefixes: string[] = [];
+
+  const fromSystem = await getPrefixFromChromeSystem();
+  if (fromSystem) prefixes.push(fromSystem);
+
+  const fromWebRtc = await getPrefixFromWebRtc();
+  if (fromWebRtc && !prefixes.includes(fromWebRtc)) prefixes.push(fromWebRtc);
+
+  for (const prefix of COMMON_SUBNET_PREFIXES) {
+    if (!prefixes.includes(prefix)) prefixes.push(prefix);
+  }
+
+  return prefixes;
 }
 
 export async function discoverDevices(options: {
@@ -83,12 +142,13 @@ export async function discoverDevices(options: {
   }
 
   if (options.includeSubnetScan !== false) {
-    const prefix = await getLocalSubnetPrefix();
-    if (prefix) {
+    const prefixes = await getLocalSubnetPrefixes();
+    for (const prefix of prefixes) {
       const scanned = await scanSubnetForDevices(prefix, extensionFetch, {
         concurrency: 24,
       });
       devices.push(...scanned);
+      if (scanned.length > 0) break;
     }
   }
 

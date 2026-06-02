@@ -9,7 +9,7 @@ export default defineConfig({
     name: '__MSG_extName__',
     description: '__MSG_extDescription__',
     default_locale: 'zh_CN',
-    permissions: ['storage', 'activeTab', 'contextMenus', 'system.network'],
+    permissions: ['storage', 'activeTab', 'contextMenus'],
     host_permissions: ['<all_urls>'],
     icons: {
       16: 'icon.svg',

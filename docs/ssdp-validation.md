@@ -26,7 +26,7 @@ flowchart LR
     G --> H[提取 AVTransport URL]
 ```
 
-1. **主路径**：通过 `chrome.system.network.getNetworkInterfaces` 获取本机 IPv4 网段，并行 HTTP 探测常见 UPnP 描述路径（`/description.xml`、`/dmr/description.xml` 等）。
+1. **主路径**：优先 WebRTC 探测本机 IPv4 网段；Chrome OS 上可额外使用 `chrome.system.network`；否则依次尝试常见家用网段（192.168.1/0/31、10.0.0），并行 HTTP 探测 UPnP 描述路径（`/description.xml`、`/dmr/description.xml` 等）。
 2. **降级路径**：用户在 Popup 或设置中手动输入电视 IP。
 3. **持久化**：手动添加的设备保存在 `chrome.storage.local`，下次自动探测。
 4. **协议库预留**：`@mochi-cast/dlna-core` 已实现完整 SSDP M-SEARCH 解析与 `UdpTransport` 接口，若未来平台开放 UDP API 或增加 Native Messaging 伴侣，可直接接入。
