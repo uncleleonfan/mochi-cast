@@ -26,14 +26,14 @@ flowchart LR
     G --> H[提取 AVTransport URL]
 ```
 
-1. **主路径**：优先 WebRTC 探测本机 IPv4 网段；Chrome OS 上可额外使用 `chrome.system.network`；否则依次尝试常见家用网段（192.168.1/0/31、10.0.0），并行 HTTP 探测 UPnP 描述路径（`/description.xml`、`/dmr/description.xml` 等）。
+1. **主路径**：按优先级顺序扫描网段（上次电视 IP 网段 → 设置中的网段 → WebRTC/STUN → 常见网段）；**首个网段**使用与手动添加相同的端口探测（含 49152 等）；找到设备后停止，避免 12s 超时摊到 7 个错误网段。
 2. **降级路径**：用户在 Popup 或设置中手动输入电视 IP。
 3. **持久化**：手动添加的设备保存在 `chrome.storage.local`，下次自动探测。
 4. **协议库预留**：`@mochi-cast/dlna-core` 已实现完整 SSDP M-SEARCH 解析与 `UdpTransport` 接口，若未来平台开放 UDP API 或增加 Native Messaging 伴侣，可直接接入。
 
 ## 性能与限制
 
-- 子网扫描默认探测 `.1`–`.254`，并发 24，单 IP 超时 2s，整网段约 20–30 秒（首次扫描）。
+- 子网扫描优先探测常见电视地址（如 `.100`、`.200`）；默认总超时 20s；**顺序**扫描网段（非并行），主网段开启全端口探测。
 - 已发现设备会缓存，后续打开 Popup 可立即展示。
 - 投屏控制（SOAP/HTTP）不受此限制，扩展可直接与局域网电视通信。
 

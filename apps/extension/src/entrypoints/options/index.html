@@ -28,16 +28,37 @@
         </label>
         <label class="field">
           <span>设备发现超时 (ms)</span>
-          <input type="number" id="discoveryTimeoutMs" min="3000" max="30000" step="1000" />
+          <input type="number" id="discoveryTimeoutMs" min="3000" max="60000" step="1000" />
         </label>
+        <label class="field">
+          <span>局域网网段（可选，优先扫描）</span>
+          <input
+            type="text"
+            id="subnetPrefix"
+            placeholder="192.168.31"
+            autocomplete="off"
+          />
+        </label>
+        <p class="hint">
+          自动扫描在 Mac 上可能猜不到网段。若扫描不到电视，请填写路由器网段前三段（与电视 IP 一致），或继续用手动添加 IP。
+        </p>
       </section>
 
       <section class="card">
         <h2>高级</h2>
         <label class="field checkbox">
           <input type="checkbox" id="debug" />
-          <span>启用调试日志</span>
+          <span>启用调试日志（扫描 / 投屏过程会写入下方日志）</span>
         </label>
+        <p class="hint">
+          也可在 <code>chrome://extensions</code> → 麻薯投屏 →「Service Worker」→ Console 查看实时日志。
+        </p>
+        <div class="log-toolbar">
+          <button type="button" id="btn-refresh-logs" class="btn">刷新日志</button>
+          <button type="button" id="btn-clear-logs" class="btn">清空日志</button>
+          <button type="button" id="btn-copy-logs" class="btn">复制日志</button>
+        </div>
+        <pre id="debug-log" class="debug-log" aria-label="Debug log">（开启调试后执行一次扫描，再点「刷新日志」）</pre>
       </section>
 
       <section class="card">

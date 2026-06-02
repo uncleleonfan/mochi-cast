@@ -31,7 +31,7 @@
             type="text"
             id="manual-ip"
             class="input"
-            placeholder="192.168.1.100"
+            placeholder="192.168.1.100 或 :49152/description.xml"
             autocomplete="off"
           />
           <button type="button" id="btn-add-ip" class="btn secondary" data-i18n="addIp">
@@ -49,6 +49,18 @@
         <p id="video-hint" class="hint hidden" data-i18n="videoHint">
           请先在网页中播放视频，或全屏后再刷新
         </p>
+        <div class="manual-add">
+          <input
+            type="url"
+            id="manual-video-url"
+            class="input"
+            placeholder="https://…/video.mp4（B站需 http 直链，非 blob）"
+            autocomplete="off"
+          />
+          <button type="button" id="btn-add-video" class="btn secondary" data-i18n="addVideoUrl">
+            添加链接
+          </button>
+        </div>
       </section>
 
       <section class="controls">

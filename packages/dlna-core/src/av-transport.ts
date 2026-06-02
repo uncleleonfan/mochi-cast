@@ -1,5 +1,6 @@
 import {
   AV_TRANSPORT_SERVICE,
+  DLNA_USER_AGENT,
   type MediaItem,
   type PositionInfo,
   type TransportInfo,
@@ -70,10 +71,13 @@ export class AvTransportClient {
       headers: {
         'Content-Type': 'text/xml; charset="utf-8"',
         SOAPAction: `"${AV_TRANSPORT_SERVICE}#${action}"`,
+        'User-Agent': DLNA_USER_AGENT,
+        Connection: 'close',
       },
       body: envelope,
       signal: AbortSignal.timeout(10000),
-    });
+      targetAddressSpace: 'local',
+    } as RequestInit & { targetAddressSpace: string });
 
     const text = await response.text();
     if (!response.ok) {

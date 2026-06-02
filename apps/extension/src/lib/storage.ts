@@ -20,6 +20,7 @@ export async function getLastDeviceId(): Promise<string | undefined> {
   return settings.lastDeviceId;
 }
 
+/** @deprecated Use saveLastDevice from device-store.ts */
 export async function setLastDeviceId(deviceId: string): Promise<void> {
   await saveSettings({ lastDeviceId: deviceId });
 }

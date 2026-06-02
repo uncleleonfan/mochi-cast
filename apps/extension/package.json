@@ -5,7 +5,7 @@
   "description": "Mochi Cast browser extension",
   "type": "module",
   "scripts": {
-    "dev": "wxt",
+    "dev": "node scripts/copy-public.mjs && wxt",
     "build": "wxt build && node scripts/copy-public.mjs",
     "zip": "wxt build && node scripts/copy-public.mjs && node scripts/make-zip.mjs",
     "typecheck": "tsc --noEmit",

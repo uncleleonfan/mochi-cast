@@ -62,6 +62,10 @@ export const DEFAULT_SEARCH_TARGET =
 export const SSDP_MULTICAST_ADDRESS = '239.255.255.250';
 export const SSDP_PORT = 1900;
 
+/** User-Agent accepted by most DLNA TVs (Chrome default is often rejected with 403). */
+export const DLNA_USER_AGENT =
+  'Microsoft-Windows/10.0 UPnP/1.0 Microsoft-DLNA DLNADOC/1.50';
+
 export const AV_TRANSPORT_SERVICE = 'urn:schemas-upnp-org:service:AVTransport:1';
 export const RENDERING_CONTROL_SERVICE =
   'urn:schemas-upnp-org:service:RenderingControl:1';

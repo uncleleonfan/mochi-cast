@@ -1,8 +1,11 @@
+import { saveLastDevice } from '../lib/device-store.js';
 import {
   addDeviceByIp,
   discoverDevices,
   getCachedDevices,
+  hydrateDevicesFromStorage,
   mergeDevices,
+  reconnectLastDevice,
   resolveDeviceFromManual,
 } from '../lib/discovery/manager.js';
 import {
@@ -10,7 +13,17 @@ import {
   controlPlayback,
   getPlaybackState,
 } from '../lib/cast-manager.js';
-import { loadSettings, saveSettings, setLastDeviceId } from '../lib/storage.js';
+import {
+  clearLogBuffer,
+  formatLogLines,
+  getLogBuffer,
+  loadPersistedLogs,
+  log,
+  logError,
+  setDebugEnabled,
+} from '../lib/debug-log.js';
+import { getVideosFromTab } from '../lib/get-videos-from-tab.js';
+import { loadSettings, saveSettings } from '../lib/storage.js';
 import type {
   MessagePayloads,
   MessageResponses,
@@ -18,6 +31,8 @@ import type {
 } from '../shared/messages.js';
 
 export default defineBackground(() => {
+  void hydrateDevicesFromStorage();
+
   chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
       id: 'mochi-cast',
@@ -35,9 +50,10 @@ export default defineBackground(() => {
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     handleMessage(message.type as MessageType, message.payload)
       .then((result) => sendResponse({ ok: true, data: result }))
-      .catch((error: Error) =>
-        sendResponse({ ok: false, error: error.message ?? String(error) }),
-      );
+      .catch((error: Error) => {
+        logError('background', `message_failed:${message.type}`, error);
+        sendResponse({ ok: false, error: error.message ?? String(error) });
+      });
     return true;
   });
 });
@@ -46,23 +62,58 @@ async function handleMessage<T extends MessageType>(
   type: T,
   payload?: MessagePayloads[T],
 ): Promise<MessageResponses[T]> {
+  const settings = await loadSettings();
+  setDebugEnabled(settings.debug);
+  log('background', 'message', { type, payload });
+
   switch (type) {
     case 'DISCOVER_DEVICES': {
-      const settings = await loadSettings();
       const manualIps = settings.manualDevices.map((d) => d.ip);
       const result = await discoverDevices({
         timeoutMs: settings.discoveryTimeoutMs,
         manualIps,
+        debug: settings.debug,
       });
-      return { devices: result.devices, method: result.method } as MessageResponses[T];
+      return {
+        devices: result.devices,
+        method: result.method,
+        error: result.error,
+        lastDeviceId: result.lastDeviceId,
+      } as MessageResponses[T];
     }
-    case 'GET_DEVICES':
-      return { devices: getCachedDevices() } as MessageResponses[T];
+    case 'GET_DEVICES': {
+      const p = payload as MessagePayloads['GET_DEVICES'];
+      await hydrateDevicesFromStorage();
+      let lastDeviceStatus: 'online' | 'offline' | 'none' = 'none';
+      let lastDevice: import('@mochi-cast/dlna-core').DlnaDevice | null = null;
+      if (p?.reconnectLast !== false) {
+        const reconnected = await reconnectLastDevice();
+        lastDeviceStatus = reconnected.status;
+        lastDevice = reconnected.device;
+      }
+      if (!lastDevice) {
+        const { getLastSavedDevice } = await import('../lib/device-store.js');
+        lastDevice = await getLastSavedDevice();
+      }
+      const freshSettings = await loadSettings();
+      return {
+        devices: getCachedDevices(),
+        lastDeviceStatus,
+        lastDeviceId: lastDevice?.id ?? freshSettings.lastDeviceId,
+        lastDeviceIp: lastDevice?.ip,
+      } as MessageResponses[T];
+    }
+    case 'SAVE_LAST_DEVICE': {
+      const p = payload as MessagePayloads['SAVE_LAST_DEVICE'];
+      const device = getCachedDevices().find((d) => d.id === p.deviceId);
+      if (device) await saveLastDevice(device);
+      return { success: Boolean(device) } as MessageResponses[T];
+    }
     case 'ADD_DEVICE_BY_IP': {
       const p = payload as MessagePayloads['ADD_DEVICE_BY_IP'];
-      const device = await addDeviceByIp(p.ip, p.name);
+      const { device, error } = await addDeviceByIp(p.ip, p.name);
       if (!device) {
-        return { device: null, error: 'Device not found at IP' } as MessageResponses[T];
+        return { device: null, error: error ?? 'Device not found at IP' } as MessageResponses[T];
       }
       const settings = await loadSettings();
       const manualDevices = [
@@ -70,6 +121,7 @@ async function handleMessage<T extends MessageType>(
         { id: device.id, ip: p.ip, name: device.name, location: device.location },
       ];
       await saveSettings({ manualDevices });
+      await saveLastDevice(device);
       return { device } as MessageResponses[T];
     }
     case 'CAST_MEDIA': {
@@ -78,7 +130,7 @@ async function handleMessage<T extends MessageType>(
       const device = devices.find((d) => d.id === p.deviceId);
       if (!device) throw new Error('Device not found');
       await castToDevice(device, p.video);
-      await setLastDeviceId(device.id);
+      await saveLastDevice(device);
       return { success: true } as MessageResponses[T];
     }
     case 'CONTROL_PLAYBACK': {
@@ -89,13 +141,16 @@ async function handleMessage<T extends MessageType>(
     case 'GET_VIDEOS': {
       const p = payload as MessagePayloads['GET_VIDEOS'];
       const tabId = p.tabId ?? (await getActiveTabId());
-      if (!tabId) return { videos: [] } as unknown as MessageResponses[T];
-      try {
-        const response = await chrome.tabs.sendMessage(tabId, { type: 'SCAN_VIDEOS' });
-        return response as MessageResponses[T];
-      } catch {
-        return { videos: [] } as unknown as MessageResponses[T];
+      if (!tabId) {
+        return { videos: [], error: 'no_active_tab' } as unknown as MessageResponses[T];
       }
+      const result = await getVideosFromTab(tabId);
+      log('videos', 'scan_result', {
+        count: result.videos.length,
+        error: result.error,
+        pageUrl: result.pageUrl,
+      });
+      return result as unknown as MessageResponses[T];
     }
     case 'GET_SETTINGS':
       return (await loadSettings()) as MessageResponses[T];
@@ -116,6 +171,17 @@ async function handleMessage<T extends MessageType>(
     }
     case 'GET_PLAYBACK_STATE':
       return (await getPlaybackState()) as MessageResponses[T];
+    case 'GET_DEBUG_LOGS': {
+      await loadPersistedLogs();
+      return {
+        entries: getLogBuffer(),
+        text: formatLogLines(getLogBuffer()),
+      } as MessageResponses[T];
+    }
+    case 'CLEAR_DEBUG_LOGS':
+      clearLogBuffer();
+      log('background', 'debug_logs_cleared');
+      return { success: true } as MessageResponses[T];
     default:
       throw new Error(`Unknown message type: ${type}`);
   }

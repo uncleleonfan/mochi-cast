@@ -14,15 +14,34 @@ export { discoverViaSsdp, parseDeviceDescription, probeDeviceAtIp, scanSubnetFor
 export { AvTransportClient };
 export * from './types.js';
 export * from './soap.js';
+export type {
+  DiscoveryTrace,
+  NormalizedProbeTarget,
+  ProbeAttempt,
+  ProbeOptions,
+  ProbeResult,
+  SubnetScanOptions,
+} from './discovery.js';
+export {
+  buildProbeOrigins,
+  buildReconnectProbeUrls,
+  normalizeProbeTarget,
+  probeDeviceDetailed,
+  reconnectProbeDevice,
+  COMMON_PROBE_PORTS,
+  FAST_PROBE_PORTS,
+  PROBE_HTTP_PROFILES,
+} from './discovery.js';
 export * from './discovery.js';
 export * from './profiles.js';
 
 export async function fetchDeviceDescription(
   location: string,
   fetchFn: typeof fetch = fetch,
+  timeoutMs = 5000,
 ): Promise<DlnaDevice | null> {
   try {
-    const response = await fetchFn(location, { signal: AbortSignal.timeout(5000) });
+    const response = await fetchFn(location, { signal: AbortSignal.timeout(timeoutMs) });
     if (!response.ok) return null;
     const xml = await response.text();
     return parseDeviceDescription(xml, location);
