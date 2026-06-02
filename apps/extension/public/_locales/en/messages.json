@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "Mochi Cast",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "Cast web videos to smart TVs via DLNA (Xiaomi, TCL, and more)",
+    "description": "Extension description"
+  },
+  "contextCast": {
+    "message": "Cast with Mochi…",
+    "description": "Context menu label"
+  }
+}

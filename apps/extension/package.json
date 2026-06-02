@@ -1,0 +1,22 @@
+{
+  "name": "@mochi-cast/extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mochi Cast browser extension",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build && node scripts/copy-public.mjs",
+    "zip": "wxt build && node scripts/copy-public.mjs && node scripts/make-zip.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"No lint configured\""
+  },
+  "dependencies": {
+    "@mochi-cast/dlna-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "typescript": "^5.7.2",
+    "wxt": "^0.19.22"
+  }
+}

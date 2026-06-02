@@ -1,0 +1,14 @@
+{
+  "extName": {
+    "message": "麻薯投屏",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "将网页视频通过 DLNA 投屏到智能电视（小米、TCL 等）",
+    "description": "Extension description"
+  },
+  "contextCast": {
+    "message": "投屏到麻薯…",
+    "description": "Context menu label"
+  }
+}

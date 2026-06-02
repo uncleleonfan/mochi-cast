@@ -1,0 +1,110 @@
+:root {
+  color-scheme: light dark;
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --muted: #666;
+  --accent: #e87c3c;
+  --border: #e8e4df;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1b1a;
+    --surface: #2a2826;
+    --text: #f5f2ef;
+    --muted: #a8a29e;
+    --border: #3d3935;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 20px 48px;
+}
+
+header h1 {
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.card h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.field.checkbox {
+  flex-direction: row;
+  align-items: center;
+}
+
+.field select,
+.field input[type='number'] {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.legal {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 12px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn.primary {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+a {
+  color: var(--accent);
+}
