@@ -1,6 +1,8 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getContent, isLocale, type Locale } from '@/lib/i18n';
 import { ISSUES_URL } from '@/lib/site';
+import { buildPageMetadata } from '@/lib/seo';
 
 function CompatTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
   return (
@@ -29,6 +31,16 @@ function CompatTable({ headers, rows }: { headers: string[]; rows: string[][] })
       </table>
     </div>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: raw } = await params;
+  if (!isLocale(raw)) return {};
+  return buildPageMetadata(raw, 'compatibility');
 }
 
 export default async function CompatibilityPage({

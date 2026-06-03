@@ -1,6 +1,19 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { FaqSection } from '@/components/faq-section';
+import { JsonLd } from '@/components/json-ld';
 import { getContent, isLocale, type Locale } from '@/lib/i18n';
+import { buildFaqJsonLd, buildPageMetadata } from '@/lib/seo';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: raw } = await params;
+  if (!isLocale(raw)) return {};
+  return buildPageMetadata(raw, 'guide');
+}
 
 export default async function GuidePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: raw } = await params;
@@ -10,6 +23,7 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
 
   return (
     <div className="prose-page mx-auto max-w-3xl px-4 py-12">
+      <JsonLd data={buildFaqJsonLd(locale)} />
       <h1 className="mb-6 text-3xl font-bold">{g.title}</h1>
 
       <h2>{g.quickStartTitle}</h2>

@@ -1,5 +1,16 @@
 export interface SiteContent {
   meta: { title: string; description: string };
+  seo: {
+    siteName: string;
+    keywords: string[];
+    pages: {
+      home: { title: string; description: string };
+      download: { title: string; description: string };
+      guide: { title: string; description: string };
+      compatibility: { title: string; description: string };
+      privacy: { title: string; description: string };
+    };
+  };
   nav: {
     home: string;
     download: string;

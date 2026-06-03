@@ -6,6 +6,47 @@ export const content: SiteContent = {
     description:
       '麻薯投屏是一款开源浏览器扩展，将网页视频一键投送到小米、TCL、Sony 等 DLNA 智能电视。',
   },
+  seo: {
+    siteName: '麻薯投屏 Mochi Cast',
+    keywords: [
+      '麻薯投屏',
+      'DLNA投屏',
+      '浏览器投屏',
+      'Chrome投屏扩展',
+      '小米电视投屏',
+      'TCL电视投屏',
+      '网页视频投电视',
+      'DLNA',
+      '智能电视投屏',
+    ],
+    pages: {
+      home: {
+        title: '麻薯投屏 - 开源浏览器 DLNA 投屏扩展 | 网页视频投智能电视',
+        description:
+          '麻薯投屏（Mochi Cast）是免费开源 Chrome 扩展，在同一 Wi-Fi 下将网页视频一键 DLNA 投屏到小米、TCL、Sony、LG 等智能电视，无需电视端 App。',
+      },
+      download: {
+        title: '下载麻薯投屏 - Chrome / Edge DLNA 投屏扩展',
+        description:
+          '免费下载麻薯投屏浏览器扩展（.zip 或 GitHub Release），支持 Chrome、Edge，将网页视频投送到局域网 DLNA 电视。',
+      },
+      guide: {
+        title: '使用指南 - 麻薯投屏 DLNA 投屏教程与常见问题',
+        description:
+          '麻薯投屏快速上手：连接同一 Wi-Fi、开启电视 DLNA、检测视频并开始投屏。含小米/TCL 等电视设置与 FAQ。',
+      },
+      compatibility: {
+        title: '设备兼容性 - 麻薯投屏支持的 DLNA 电视品牌',
+        description:
+          '查看麻薯投屏对小米、TCL、Sony、LG 等 DLNA 智能电视的社区验证兼容性列表与已知限制。',
+      },
+      privacy: {
+        title: '隐私政策 - 麻薯投屏浏览器扩展与官网',
+        description:
+          '麻薯投屏不收集个人数据，设置仅存本地。了解扩展权限、官网 Google Analytics 及支持邮箱 support@mashutouping.com。',
+      },
+    },
+  },
   nav: {
     home: '首页',
     download: '下载',

@@ -1,6 +1,18 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { DownloadCard } from '@/components/download-card';
 import { getContent, isLocale, type Locale } from '@/lib/i18n';
+import { buildPageMetadata } from '@/lib/seo';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: raw } = await params;
+  if (!isLocale(raw)) return {};
+  return buildPageMetadata(raw, 'download');
+}
 
 export default async function DownloadPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: raw } = await params;

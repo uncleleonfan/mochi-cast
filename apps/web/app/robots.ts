@@ -1,12 +1,12 @@
 import type { MetadataRoute } from 'next';
+import { getSiteUrl } from '@/lib/site';
 
 export default function robots(): MetadataRoute.Robots {
-  const base = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'https://mochi-cast.vercel.app';
+  const siteUrl = getSiteUrl();
 
   return {
     rules: { userAgent: '*', allow: '/' },
-    sitemap: `${base}/sitemap.xml`,
+    sitemap: `${siteUrl}/sitemap.xml`,
+    host: new URL(siteUrl).host,
   };
 }

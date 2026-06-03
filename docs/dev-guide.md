@@ -170,3 +170,7 @@ Chrome Web Store 上架需：
 3. 重新部署后生效；未配置时不会加载任何追踪脚本
 
 本地开发可复制 `apps/web/.env.example` 为 `apps/web/.env.local` 进行测试。
+
+### SEO
+
+在 Vercel 设置 **`NEXT_PUBLIC_SITE_URL=https://mashutouping.com`**，用于 canonical、Open Graph、sitemap 与 hreflang。部署后在 [Google Search Console](https://search.google.com/search-console) 提交 `https://mashutouping.com/sitemap.xml`。

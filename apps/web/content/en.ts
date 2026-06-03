@@ -6,6 +6,46 @@ export const content: SiteContent = {
     description:
       'Cast web videos from your browser to Xiaomi, TCL, Sony, and other DLNA smart TVs on your local network.',
   },
+  seo: {
+    siteName: 'Mochi Cast',
+    keywords: [
+      'Mochi Cast',
+      'DLNA cast',
+      'browser cast to TV',
+      'Chrome casting extension',
+      'cast web video to smart TV',
+      'Xiaomi TV cast',
+      'DLNA renderer',
+      'screen cast extension',
+    ],
+    pages: {
+      home: {
+        title: 'Mochi Cast - Open Source DLNA Browser Extension | Cast Web Video to TV',
+        description:
+          'Mochi Cast is a free, open-source Chrome extension that casts web videos to DLNA smart TVs (Xiaomi, TCL, Sony, LG) on your Wi-Fi—no TV app required.',
+      },
+      download: {
+        title: 'Download Mochi Cast - Chrome & Edge DLNA Casting Extension',
+        description:
+          'Download the Mochi Cast browser extension (.zip or GitHub Release) for Chrome and Edge. Cast web videos to DLNA TVs on your local network.',
+      },
+      guide: {
+        title: 'User Guide - Mochi Cast DLNA Setup & FAQ',
+        description:
+          'Learn how to cast with Mochi Cast: same Wi-Fi, enable DLNA on your TV, detect video, and start casting. TV setup tips and troubleshooting FAQ.',
+      },
+      compatibility: {
+        title: 'Device Compatibility - DLNA TVs Supported by Mochi Cast',
+        description:
+          'Community-tested compatibility for Xiaomi, TCL, Sony, LG, and other DLNA smart TVs with Mochi Cast, plus known limitations.',
+      },
+      privacy: {
+        title: 'Privacy Policy - Mochi Cast Extension & Website',
+        description:
+          'Mochi Cast does not collect personal data; settings stay local. Extension permissions, website analytics, and support at support@mashutouping.com.',
+      },
+    },
+  },
   nav: {
     home: 'Home',
     download: 'Download',

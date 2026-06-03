@@ -10,7 +10,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/icons') ||
     pathname === '/favicon.ico' ||
     pathname === '/robots.txt' ||
-    pathname === '/sitemap.xml'
+    pathname === '/sitemap.xml' ||
+    pathname === '/manifest.webmanifest'
   ) {
     return NextResponse.next();
   }

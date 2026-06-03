@@ -1,6 +1,18 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getContent, isLocale, type Locale } from '@/lib/i18n';
 import { ISSUES_URL, SUPPORT_EMAIL, SUPPORT_MAILTO } from '@/lib/site';
+import { buildPageMetadata } from '@/lib/seo';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale: raw } = await params;
+  if (!isLocale(raw)) return {};
+  return buildPageMetadata(raw, 'privacy');
+}
 
 export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: raw } = await params;

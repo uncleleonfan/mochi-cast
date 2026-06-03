@@ -4,6 +4,7 @@ import { Footer } from '@/components/footer';
 import { GoogleAnalytics } from '@/components/google-analytics';
 import { Header } from '@/components/header';
 import { getContent, isLocale, locales, type Locale } from '@/lib/i18n';
+import { getSiteUrl } from '@/lib/site';
 import '../globals.css';
 
 export function generateStaticParams() {
@@ -18,15 +19,17 @@ export async function generateMetadata({
   const { locale: raw } = await params;
   if (!isLocale(raw)) return {};
   const c = getContent(raw);
+
   return {
-    title: c.meta.title,
-    description: c.meta.description,
-    metadataBase: new URL(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://mochi-cast.vercel.app'),
-    openGraph: {
-      title: c.meta.title,
-      description: c.meta.description,
-      images: ['/icons/icon128.png'],
+    metadataBase: new URL(getSiteUrl()),
+    applicationName: c.seo.siteName,
+    authors: [{ name: c.seo.siteName, url: getSiteUrl() }],
+    creator: c.seo.siteName,
+    icons: {
+      icon: [{ url: '/icons/icon48.png', sizes: '48x48', type: 'image/png' }],
+      apple: [{ url: '/icons/icon128.png', sizes: '128x128', type: 'image/png' }],
     },
+    manifest: '/manifest.webmanifest',
   };
 }
 
