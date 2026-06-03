@@ -5,6 +5,8 @@
 
 **麻薯投屏**是一款开源浏览器扩展，让你在一键将网页视频投送到同一 Wi-Fi 下的智能电视——支持小米、TCL、Sony、LG 等 DLNA 电视，无需安装电视端 App。
 
+**官网 / Website:** https://mochi-cast.vercel.app
+
 [English](#english) | [中文](#中文)
 
 ---

@@ -1,7 +1,9 @@
 node_modules/
 dist/
 .output/
+.next/
 .wxt/
+*.tsbuildinfo
 *.local
 .DS_Store
 *.log

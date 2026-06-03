@@ -7,6 +7,8 @@
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm --filter @mochi-cast/extension dev",
+    "dev:web": "pnpm --filter @mochi-cast/web dev",
+    "build:web": "pnpm --filter @mochi-cast/web build",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm --filter @mochi-cast/dlna-core build && pnpm -r typecheck"
