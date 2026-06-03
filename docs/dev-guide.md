@@ -147,3 +147,17 @@ Chrome Web Store 上架需：
 5. 点击 Deploy；之后每次 push 到 `main` 会自动 Production 部署
 
 本地预览：`pnpm dev:web`
+
+### 构建失败排查
+
+若出现 `cd ../.. && pnpm install` 或 `No package.json found in /`，说明 **Vercel 控制台里仍覆盖了 Install Command**（常见于之前 CLI 关联留下的配置），与仓库内 `vercel.json` 不一致。
+
+在 Vercel → Project → **Settings → Build & Deployment** 中：
+
+| 项 | 正确值 |
+|----|--------|
+| Root Directory | `apps/web` |
+| Install Command | **关闭 Override**，使用仓库 `vercel.json`（`pnpm install --frozen-lockfile`） |
+| Build Command | **关闭 Override**，使用仓库 `vercel.json`（`pnpm build`） |
+
+保存后 **Redeploy** 即可。切勿在 Install Command 里写 `cd ../..`——Root Directory 已是 `apps/web` 时，这条命令会把工作目录带到仓库外（`/），从而报错。
