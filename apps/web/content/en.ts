@@ -187,6 +187,10 @@ export const content: SiteContent = {
       '<all_urls> — Required to sniff video URLs and send DLNA SOAP to local devices.',
     ],
     contactTitle: 'Contact',
-    contact: 'Report issues via GitHub Issues.',
+    contact:
+      'For extension support, privacy questions, or Chrome Web Store inquiries, email us at:',
+    supportEmailLabel: 'Support email',
+    contactIssuesBefore: 'You can also report bugs on',
+    contactIssuesAfter: '.',
   },
 };

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Locale } from '@/lib/i18n';
 import { getContent, localePath } from '@/lib/i18n';
-import { GITHUB_REPO, RELEASE_URL } from '@/lib/site';
+import { GITHUB_REPO, RELEASE_URL, SUPPORT_EMAIL, SUPPORT_MAILTO } from '@/lib/site';
 
 export function Footer({ locale }: { locale: Locale }) {
   const c = getContent(locale);
@@ -21,6 +21,9 @@ export function Footer({ locale }: { locale: Locale }) {
           <Link href={localePath(locale, 'privacy')} className="hover:text-brand">
             {c.nav.privacy}
           </Link>
+          <a href={SUPPORT_MAILTO} className="hover:text-brand">
+            {SUPPORT_EMAIL}
+          </a>
           <a href={RELEASE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-brand">
             Release
           </a>

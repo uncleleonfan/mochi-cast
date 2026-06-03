@@ -183,6 +183,9 @@ export const content: SiteContent = {
       '<all_urls> — 用于嗅探视频 URL 并向局域网设备发送 DLNA SOAP 请求。',
     ],
     contactTitle: '联系我们',
-    contact: '如有问题请通过 GitHub Issues 反馈。',
+    contact: '扩展使用问题、隐私相关咨询或 Chrome 网上应用店支持请求，请发送邮件至：',
+    supportEmailLabel: '支持邮箱',
+    contactIssuesBefore: '也可通过',
+    contactIssuesAfter: '反馈问题。',
   },
 };

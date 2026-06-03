@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getContent, isLocale, type Locale } from '@/lib/i18n';
-import { ISSUES_URL } from '@/lib/site';
+import { ISSUES_URL, SUPPORT_EMAIL, SUPPORT_MAILTO } from '@/lib/site';
 
 export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: raw } = await params;
@@ -46,11 +46,19 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
       </ul>
 
       <h2>{p.contactTitle}</h2>
+      <p>{p.contact}</p>
       <p>
-        {p.contact}{' '}
+        <strong>{p.supportEmailLabel}:</strong>{' '}
+        <a href={SUPPORT_MAILTO} className="text-brand hover:underline">
+          {SUPPORT_EMAIL}
+        </a>
+      </p>
+      <p>
+        {p.contactIssuesBefore}{' '}
         <a href={ISSUES_URL} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline">
           GitHub Issues
         </a>
+        {p.contactIssuesAfter}
       </p>
     </div>
   );

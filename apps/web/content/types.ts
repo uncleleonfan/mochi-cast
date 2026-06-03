@@ -77,5 +77,8 @@ export interface SiteContent {
     permissions: string[];
     contactTitle: string;
     contact: string;
+    supportEmailLabel: string;
+    contactIssuesBefore: string;
+    contactIssuesAfter: string;
   };
 }
