@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import type { Locale } from '@/lib/i18n';
 import { getContent, localePath } from '@/lib/i18n';
 import { GITHUB_REPO } from '@/lib/site';
+import { SiteLogo } from './site-logo';
 
 export function Hero({ locale }: { locale: Locale }) {
   const c = getContent(locale);
@@ -11,7 +11,7 @@ export function Hero({ locale }: { locale: Locale }) {
     <section className="mx-auto max-w-6xl px-4 py-16 md:py-24">
       <div className="flex flex-col items-center text-center md:items-start md:text-left">
         <div className="mb-6 flex items-center gap-4">
-          <Image src="/icons/icon128.png" alt="" width={80} height={80} className="rounded-2xl shadow-lg" />
+          <SiteLogo size={80} priority className="rounded-2xl shadow-lg" />
           <div>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">{c.hero.title}</h1>
             <p className="text-lg text-[var(--color-muted)]">{c.hero.subtitle}</p>

@@ -43,6 +43,10 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale === 'zh' ? 'zh-CN' : 'en'}>
+      <head>
+        <link rel="preload" href="/icons/icon128.png" as="image" type="image/png" />
+        <link rel="preload" href="/icons/icon48.png" as="image" type="image/png" />
+      </head>
       <body className="min-h-screen antialiased">
         <Header locale={locale} />
         <main>{children}</main>
