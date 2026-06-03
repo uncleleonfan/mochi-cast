@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { FaqSection } from '@/components/faq-section';
 import { getContent, isLocale, type Locale } from '@/lib/i18n';
 
 export default async function GuidePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -52,13 +53,7 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
         </table>
       </div>
 
-      <h2>{g.faqTitle}</h2>
-      {g.faq.map((item) => (
-        <div key={item.q} className="mb-4">
-          <p className="font-medium">{item.q}</p>
-          <p>{item.a}</p>
-        </div>
-      ))}
+      <FaqSection title={g.faqTitle} items={g.faq} />
     </div>
   );
 }
