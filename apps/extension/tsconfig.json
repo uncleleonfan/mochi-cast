@@ -1,7 +1,6 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "./.wxt/tsconfig.json",
   "compilerOptions": {
     "types": ["chrome"]
-  },
-  "include": [".wxt/**/*", "src/**/*", "wxt.config.ts"]
+  }
 }

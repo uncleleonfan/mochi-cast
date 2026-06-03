@@ -9,7 +9,7 @@
     "dev": "pnpm --filter @mochi-cast/extension dev",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm --filter @mochi-cast/dlna-core build && pnpm -r typecheck"
   },
   "engines": {
     "node": ">=18"

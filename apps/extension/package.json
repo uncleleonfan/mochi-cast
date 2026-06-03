@@ -8,7 +8,7 @@
     "dev": "node scripts/copy-public.mjs && wxt",
     "build": "wxt build && node scripts/copy-public.mjs",
     "zip": "wxt build && node scripts/copy-public.mjs && node scripts/make-zip.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "wxt prepare && tsc --noEmit",
     "lint": "echo \"No lint configured\""
   },
   "dependencies": {
