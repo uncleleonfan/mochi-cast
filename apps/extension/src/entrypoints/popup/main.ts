@@ -10,26 +10,31 @@ const STRINGS = {
     scan: '扫描',
     selectDevice: '选择设备…',
     addIp: '添加 IP',
+    manualIpPlaceholder: '电视 IP，如 192.168.1.100',
+    manualVideoUrlPlaceholder: 'http(s) 视频直链',
+    videoRefreshTitle: '重新检测视频',
     deviceHint:
-      '自动扫描可能找不到电视，可手动添加 IP',
+      '请确认电脑与电视在同一 Wi‑Fi。自动扫描可能找不到电视，可手动添加 IP，或在设置中填写网段',
     videos: '检测到的视频',
-    videoHint: '请先在网页中播放视频，再点 ↻ 刷新（会扫描 iframe 内播放器）；或下方粘贴 m3u8/MP4 直链',
+    videoHint: '请先播放视频，再点视频区 ↻ 重新检测；或下方粘贴 m3u8/MP4 直链',
     addVideoUrl: '添加链接',
     videoUrlAdded: '已添加视频链接',
     videoUrlInvalid: '请输入可访问的 http(s) 视频直链（不支持 blob/YouTube）',
-    videoScanRestricted: '无法在此页面检测视频，请打开视频网页或粘贴直链',
-    videoScanEmpty: '未检测到视频链接',
+    videoScanRestricted: '无法在此页面检测视频，请打开普通网页或粘贴直链',
+    videoScanEmpty: '未检测到可投屏链接。请先播放并点视频区 ↻，或粘贴 m3u8/MP4 直链',
     videoScanning: '检测中…',
     videoScanFound: '已找到 {n}',
     videoScanEmptyBadge: '未找到',
     videoScanRestrictedBadge: '不可检测',
     videoScanErrorBadge: '检测失败',
     videoScanTimeout: '检测超时',
-    videoScanTimeoutHint: '页面 iframe 过多或较慢，请用下方粘贴 m3u8/MP4 直链',
+    videoScanTimeoutHint: '页面 iframe 过多或较慢，请粘贴 m3u8/MP4 直链',
     videoBlobBilibili:
-      'B 站播放器使用 blob 地址，电视无法直接拉流。请播放后点 ↻；若仍无列表，请用下方粘贴 bilibili 返回的 http 直链（或换 MP4 测试页）',
+      'B 站播放器使用 blob，电视无法直接拉流。请先播放，再点视频区 ↻；仍无结果请粘贴 bilibili 的 http 直链',
     videoBlobOnly:
-      '页面视频为 blob 本地地址，无法投屏。请使用下方「添加链接」粘贴 http(s) MP4 直链',
+      '页面视频为 blob 本地地址，无法投屏。请用下方「添加链接」粘贴 http(s) MP4 直链',
+    videoBlobDouyin:
+      '抖音播放器多为 blob。请先播放，再点视频区 ↻；仍无链接可粘贴 Network 里抓到的 douyinvod 直链（部分视频有版权限制）',
     cast: '开始投屏',
     settings: '设置',
     scanning: '正在扫描局域网…',
@@ -40,7 +45,7 @@ const STRINGS = {
     deviceAdded: '已添加设备',
     deviceNotFound: '未在该 IP 找到 DLNA 设备',
     scanDoneNoDevices:
-      '未发现电视。请用下方「添加 IP」输入电视 IP，或在设置中开启调试后查看控制台',
+      '未发现电视。请用上方「添加 IP」输入电视 IP，或在设置中填写网段并开启调试查看日志',
     reconnecting: '正在连接上次使用的电视…',
     connected: '已连接',
     lastDeviceOffline: '上次电视暂不可用，已保留在列表中',
@@ -51,26 +56,33 @@ const STRINGS = {
     scan: 'Scan',
     selectDevice: 'Select device…',
     addIp: 'Add IP',
+    manualIpPlaceholder: 'TV IP, e.g. 192.168.1.100',
+    manualVideoUrlPlaceholder: 'http(s) direct video URL',
+    videoRefreshTitle: 'Rescan videos',
     deviceHint:
-      'Auto-scan may miss your TV (no SSDP in Chrome). Set subnet in Settings or add IP below',
+      'Use the same Wi‑Fi as your TV. Auto-scan may miss it — add the TV IP above or set subnet in Settings',
     videos: 'Detected Videos',
-    videoHint: 'Play the video, click ↻ refresh (scans iframes), or paste m3u8/MP4 below',
+    videoHint:
+      'Play the video, click ↻ in the video section to rescan, or paste an m3u8/MP4 URL below',
     addVideoUrl: 'Add URL',
     videoUrlAdded: 'Video URL added',
-    videoUrlInvalid: 'Enter an http(s) direct video URL (no blob/YouTube)',
-    videoScanRestricted: 'Cannot scan this page — open a normal web page or paste a URL',
-    videoScanEmpty: 'No URL found. If the player is in an iframe, play then refresh, or paste m3u8/MP4',
+    videoUrlInvalid: 'Enter an accessible http(s) direct video URL (no blob/YouTube)',
+    videoScanRestricted: 'Cannot scan this page — open a normal web page or paste a URL below',
+    videoScanEmpty:
+      'No castable URL. Play the video, click ↻ in the video section, or paste m3u8/MP4 below',
     videoScanning: 'Scanning…',
     videoScanFound: 'Found {n}',
     videoScanEmptyBadge: 'Not found',
     videoScanRestrictedBadge: 'Blocked',
     videoScanErrorBadge: 'Scan failed',
     videoScanTimeout: 'Timed out',
-    videoScanTimeoutHint: 'Too many/slow iframes — paste m3u8/MP4 URL below',
+    videoScanTimeoutHint: 'Too many or slow iframes — paste an m3u8/MP4 URL below',
     videoBlobBilibili:
-      'Bilibili uses blob URLs in the player. Play the video and refresh; if still empty, paste an http direct URL below (or use an MP4 test page)',
+      'Bilibili uses blob URLs. Play the video, click ↻ in the video section; if still empty, paste an http direct URL below',
     videoBlobOnly:
-      'Video uses a blob URL (not castable). Paste an http(s) MP4 direct link below',
+      'The player uses a blob URL (not castable). Paste an http(s) MP4 direct link below',
+    videoBlobDouyin:
+      'Douyin often uses blob URLs. Play the video, click ↻ in the video section; if still empty, paste a douyinvod URL from the Network tab (some videos are restricted)',
     cast: 'Start Casting',
     settings: 'Settings',
     scanning: 'Scanning local network…',
@@ -81,7 +93,7 @@ const STRINGS = {
     deviceAdded: 'Device added',
     deviceNotFound: 'No DLNA device at this IP',
     scanDoneNoDevices:
-      'No TV found. Add your TV IP above.',
+      'No TV found. Add the TV IP below, or set subnet prefix in Settings and enable debug logs',
     reconnecting: 'Reconnecting to last TV…',
     connected: 'Connected',
     lastDeviceOffline: 'Last TV is offline; still listed for retry',
@@ -111,7 +123,7 @@ type VideoScanResponse = {
   pageTitle?: string;
   pageUrl?: string;
   error?: string;
-  hints?: { blobVideoCount: number; isBilibili: boolean };
+  hints?: { blobVideoCount: number; isBilibili: boolean; isDouyin: boolean };
   scan?: VideoScanDiagnostics;
 };
 
@@ -186,10 +198,15 @@ function t(key: keyof (typeof STRINGS)['zh']): string {
 }
 
 function applyI18n() {
+  const lang = settings?.language === 'en' ? 'en' : 'zh';
+  document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
   document.querySelectorAll('[data-i18n]').forEach((el) => {
     const key = el.getAttribute('data-i18n') as keyof (typeof STRINGS)['zh'];
     if (key && el.textContent !== undefined) el.textContent = t(key);
   });
+  $<HTMLInputElement>('manual-ip').placeholder = t('manualIpPlaceholder');
+  $<HTMLInputElement>('manual-video-url').placeholder = t('manualVideoUrlPlaceholder');
+  $<HTMLButtonElement>('btn-video-refresh').title = t('videoRefreshTitle');
 }
 
 function setStatus(text: string, isError = false) {
@@ -332,12 +349,14 @@ function updateCastButton() {
 
 function videoHintForScan(
   error?: string,
-  hints?: { blobVideoCount: number; isBilibili: boolean },
+  hints?: { blobVideoCount: number; isBilibili: boolean; isDouyin: boolean },
 ): string {
   if (error === 'scan_timeout') return t('videoScanTimeoutHint');
   if (error === 'restricted_page' || error === 'no_active_tab') return t('videoScanRestricted');
   if (hints && hints.blobVideoCount > 0) {
-    return hints.isBilibili ? t('videoBlobBilibili') : t('videoBlobOnly');
+    if (hints.isDouyin) return t('videoBlobDouyin');
+    if (hints.isBilibili) return t('videoBlobBilibili');
+    return t('videoBlobOnly');
   }
   return t('videoScanEmpty');
 }

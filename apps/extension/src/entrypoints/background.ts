@@ -19,8 +19,10 @@ import {
   getLogBuffer,
   loadPersistedLogs,
   log,
+  formatUnknownError,
   logError,
   setDebugEnabled,
+  toError,
 } from '../lib/debug-log.js';
 import { getVideosFromTab } from '../lib/get-videos-from-tab.js';
 import { loadSettings, saveSettings } from '../lib/storage.js';
@@ -50,9 +52,9 @@ export default defineBackground(() => {
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     handleMessage(message.type as MessageType, message.payload)
       .then((result) => sendResponse({ ok: true, data: result }))
-      .catch((error: Error) => {
+      .catch((error: unknown) => {
         logError('background', `message_failed:${message.type}`, error);
-        sendResponse({ ok: false, error: error.message ?? String(error) });
+        sendResponse({ ok: false, error: formatUnknownError(error) });
       });
     return true;
   });
@@ -127,11 +129,23 @@ async function handleMessage<T extends MessageType>(
     case 'CAST_MEDIA': {
       const p = payload as MessagePayloads['CAST_MEDIA'];
       const devices = getCachedDevices();
-      const device = devices.find((d) => d.id === p.deviceId);
-      if (!device) throw new Error('Device not found');
-      await castToDevice(device, p.video);
-      await saveLastDevice(device);
-      return { success: true } as MessageResponses[T];
+      let device = devices.find((d) => d.id === p.deviceId);
+      if (!device) {
+        const { getLastSavedDevice } = await import('../lib/device-store.js');
+        const saved = await getLastSavedDevice();
+        if (saved?.id === p.deviceId) device = saved;
+      }
+      if (!device) throw new Error('Device not found — rescan or re-add your TV IP');
+      if (!device.avTransportUrl) {
+        throw new Error('TV has no playback control URL — rescan the device');
+      }
+      try {
+        await castToDevice(device, p.video);
+        await saveLastDevice(device);
+        return { success: true } as MessageResponses[T];
+      } catch (error) {
+        throw toError(error);
+      }
     }
     case 'CONTROL_PLAYBACK': {
       const p = payload as MessagePayloads['CONTROL_PLAYBACK'];

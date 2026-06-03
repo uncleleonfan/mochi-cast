@@ -95,7 +95,13 @@ export function buildVideoTitle(
 
   try {
     const tail = decodeURIComponent(new URL(url).pathname.split('/').pop() || '');
-    if (tail && tail !== 'index.m3u8') return tail.replace(/\.m3u8$/i, '');
+    if (tail && tail !== 'index.m3u8' && tail.toLowerCase() !== 'play') {
+      return tail.replace(/\.m3u8$/i, '');
+    }
+    if (tail?.toLowerCase() === 'play') {
+      const fromDoc = cleanDocumentTitle(ctx.documentTitle);
+      if (fromDoc) return fromDoc;
+    }
   } catch {
     /* ignore */
   }

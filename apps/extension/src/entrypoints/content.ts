@@ -17,13 +17,14 @@ export default defineContentScript({
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['src', 'data-src', 'href'],
+      attributeFilter: ['src', 'data-src', 'href', 'data-xgplayerid'],
     });
 
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
       const response = await originalFetch(...args);
       scanner.captureFromRequest(args[0]);
+      void scanner.captureFromFetchResponse?.(args[0], response.clone());
       return response;
     };
 
@@ -37,6 +38,14 @@ export default defineContentScript({
     ) {
       scanner.captureFromRequest(url);
       return originalOpen.call(this, method, url, async ?? true, username, password);
+    };
+
+    const originalSend = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.send = function (
+      body?: Document | XMLHttpRequestBodyInit | null,
+    ) {
+      this.addEventListener('load', () => scanner.captureFromXhr?.(this));
+      return originalSend.call(this, body);
     };
 
     chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {

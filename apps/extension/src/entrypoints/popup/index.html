@@ -33,7 +33,7 @@
             type="text"
             id="manual-ip"
             class="input"
-            placeholder="请输入电视机IP地址"
+            placeholder="电视 IP，如 192.168.1.100"
             autocomplete="off"
           />
           <button type="button" id="btn-add-ip" class="btn secondary" data-i18n="addIp">
@@ -41,7 +41,7 @@
           </button>
         </div>
         <p id="device-hint" class="hint" data-i18n="deviceHint">
-          请确认电脑与电视在同一 Wi-Fi，并开启电视的无线投屏 / DLNA
+          请确认电脑与电视在同一 Wi‑Fi。自动扫描可能找不到电视，可手动添加 IP
         </p>
       </section>
 
@@ -50,19 +50,19 @@
           <h2 data-i18n="videos">检测到的视频</h2>
           <div class="section-head-actions">
             <span id="video-scan-status" class="scan-badge" title="">—</span>
-            <button type="button" id="btn-video-refresh" class="link-btn" title="刷新视频检测">↻</button>
+            <button type="button" id="btn-video-refresh" class="link-btn" title="重新检测视频">↻</button>
           </div>
         </div>
         <ul id="video-list" class="video-list"></ul>
         <p id="video-hint" class="hint hidden" data-i18n="videoHint">
-          请先在网页中播放视频，或全屏后再刷新
+          请先播放视频，再点视频区 ↻ 重新检测；或下方粘贴 m3u8/MP4 直链
         </p>
         <div class="manual-add">
           <input
             type="url"
             id="manual-video-url"
             class="input"
-            placeholder="请输入视频链接"
+            placeholder="http(s) 视频直链"
             autocomplete="off"
           />
           <button type="button" id="btn-add-video" class="btn secondary" data-i18n="addVideoUrl">

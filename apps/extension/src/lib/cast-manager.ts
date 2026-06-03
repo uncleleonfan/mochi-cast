@@ -5,7 +5,33 @@ import {
   type MediaItem,
 } from '@mochi-cast/dlna-core';
 import type { DetectedVideo, PlaybackState } from '../shared/messages.js';
-import { createLoggingFetch, isDebugEnabled, log, logError } from './debug-log.js';
+import { isCastableUrl } from './video-scanner.js';
+import {
+  createLoggingFetch,
+  formatUnknownError,
+  isDebugEnabled,
+  log,
+  logError,
+  toError,
+} from './debug-log.js';
+
+const LONG_CAST_URL = 800;
+
+function buildCastMediaItem(video: DetectedVideo): MediaItem {
+  const url = video.url?.trim() ?? '';
+  if (!isCastableUrl(url)) {
+    throw new Error('Cannot cast this URL — need an http(s) direct link (not blob/data)');
+  }
+  let mimeType = video.mimeType;
+  if (!mimeType && /douyinvod|zjcdn|byte(?:ic)?cdn/i.test(url)) {
+    mimeType = 'video/mp4';
+  }
+  return {
+    url,
+    title: video.title?.trim() || 'Video',
+    mimeType: mimeType ?? undefined,
+  };
+}
 
 let activeController: DlnaController | null = null;
 let activeDeviceId: string | undefined;
@@ -30,20 +56,42 @@ export async function castToDevice(
   log('cast', 'device_profile', { profileId: profile?.id ?? 'default' });
   const fetchFn = isDebugEnabled() ? createLoggingFetch('cast', extensionFetch) : extensionFetch;
   const controller = new DlnaController(device, profile, fetchFn);
-  const item: MediaItem = {
-    url: video.url,
-    title: video.title,
-    mimeType: video.mimeType,
-  };
+  const item = buildCastMediaItem(video);
+  const preferMetadata = profile?.requiresMetadata ?? true;
+  const useMetadata = preferMetadata && item.url.length <= LONG_CAST_URL;
 
   try {
-    await controller.cast(item);
+    await tryCast(controller, item, useMetadata, preferMetadata);
     activeController = controller;
     activeDeviceId = device.id;
-    log('cast', 'cast_ok', { deviceId: device.id });
+    log('cast', 'cast_ok', { deviceId: device.id, urlLen: item.url.length });
   } catch (error) {
-    logError('cast', 'cast_failed', error, { deviceIp: device.ip });
-    throw error;
+    logError('cast', 'cast_failed', error, {
+      deviceIp: device.ip,
+      urlLen: item.url.length,
+      detail: formatUnknownError(error),
+    });
+    throw toError(error);
+  }
+}
+
+async function tryCast(
+  controller: DlnaController,
+  item: MediaItem,
+  withMetadata: boolean,
+  canRetryWithoutMetadata: boolean,
+): Promise<void> {
+  try {
+    await controller.setMedia(item, withMetadata);
+    await controller.play();
+  } catch (first) {
+    if (withMetadata && canRetryWithoutMetadata) {
+      log('cast', 'cast_retry_no_metadata', { urlLen: item.url.length });
+      await controller.setMedia(item, false);
+      await controller.play();
+      return;
+    }
+    throw first;
   }
 }
 

@@ -118,7 +118,7 @@ export interface MessageResponses {
     pageTitle?: string;
     pageUrl?: string;
     error?: string;
-    hints?: { blobVideoCount: number; isBilibili: boolean };
+    hints?: { blobVideoCount: number; isBilibili: boolean; isDouyin: boolean };
     scan?: VideoScanDiagnostics;
   };
   GET_SETTINGS: AppSettings;

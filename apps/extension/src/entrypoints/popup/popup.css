@@ -29,7 +29,7 @@
 }
 
 body {
-  width: 360px;
+  width: 400px;
   min-height: 480px;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   font-size: 13px;
@@ -170,11 +170,19 @@ body {
 .manual-add {
   display: flex;
   gap: 8px;
+  align-items: stretch;
 }
 
 .manual-add .input {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   margin-bottom: 0;
+}
+
+.manual-add .btn.secondary {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding-inline: 12px;
 }
 
 .hint {

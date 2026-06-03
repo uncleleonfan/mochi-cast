@@ -1,5 +1,15 @@
 import type { DetectedVideo } from '../shared/messages.js';
 import {
+  captureDouyinResponseBody,
+  isDouyinFeedHome,
+  isDouyinPage,
+  looksLikeDouyinMediaUrl,
+  refineDouyinFeedVideos,
+  requestUrlFromInput,
+  scanDouyinRenderData,
+  shouldParseDouyinNetworkBody,
+} from './douyin-media.js';
+import {
   buildVideoTitle,
   extractPageMediaContext,
   type PageMediaContext,
@@ -36,7 +46,11 @@ const MEDIA_HOST_PATTERN =
 
 export function looksLikeMediaUrl(url: string): boolean {
   if (!url) return false;
-  return MEDIA_URL_PATTERN.test(url) || MEDIA_HOST_PATTERN.test(url);
+  return (
+    MEDIA_URL_PATTERN.test(url) ||
+    MEDIA_HOST_PATTERN.test(url) ||
+    looksLikeDouyinMediaUrl(url)
+  );
 }
 
 /** Query keys used by embedded players (e.g. /m3u8/?url=https://...). */
@@ -174,26 +188,42 @@ export function scanInlineScriptsForMedia(
   root: Document | ShadowRoot = document,
 ): number {
   let hits = 0;
+  const onDouyin = isDouyinPage();
   root.querySelectorAll('script:not([src])').forEach((script) => {
     const text = script.textContent ?? '';
+    if (
+      onDouyin &&
+      (script.id === 'RENDER_DATA' ||
+        text.includes('play_addr') ||
+        text.includes('url_list') ||
+        text.includes('douyinvod'))
+    ) {
+      hits += captureDouyinResponseBody(text, onUrl);
+      return;
+    }
     if (!text.includes('m3u8') && !text.includes('player_')) return;
     hits += scanPageTextForMediaUrls(text, document.baseURI, onUrl);
   });
   return hits;
 }
 
-/** Scan raw HTML for iframe src, ?url= wrappers, and player_aaaa JSON. */
+  /** Scan raw HTML for iframe src, ?url= wrappers, and player_aaaa JSON. */
 export function scanDocumentHtmlForMedia(
   onUrl: (url: string) => void,
   root: Document | ShadowRoot = document,
 ): number {
+  let hits = 0;
+  if (isDouyinPage()) {
+    hits += scanDouyinRenderData(onUrl);
+  }
   const html =
     root instanceof Document ? root.documentElement.innerHTML.slice(0, 1_500_000) : '';
-  if (!html) return 0;
-  return (
-    scanPageTextForMediaUrls(html, document.baseURI, onUrl) +
-    scanInlineScriptsForMedia(onUrl, root)
-  );
+  if (!html) return hits;
+  hits += scanPageTextForMediaUrls(html, document.baseURI, onUrl);
+  if (isDouyinPage()) {
+    hits += captureDouyinResponseBody(html, onUrl);
+  }
+  return hits + scanInlineScriptsForMedia(onUrl, root);
 }
 
 export interface FrameVideoScanMeta {
@@ -241,6 +271,7 @@ export function collectFrameScanMeta(root: Document | ShadowRoot = document): Fr
 export interface PageVideoHints {
   blobVideoCount: number;
   isBilibili: boolean;
+  isDouyin: boolean;
 }
 
 /** Read playable URL from a &lt;video&gt; (property or attribute). */
@@ -278,6 +309,7 @@ export function getPageVideoHints(): PageVideoHints {
   return {
     blobVideoCount,
     isBilibili: host.includes('bilibili.com') || host.includes('bilibili.tv'),
+    isDouyin: isDouyinPage(host),
   };
 }
 
@@ -295,19 +327,52 @@ function pickRicherTitle(a?: string, b?: string): string | undefined {
   return score(b) > score(a) ? b : a;
 }
 
+const CDN_CAPTURE_TTL_MS = 30_000;
+const CDN_BLOB_LINK_MAX_AGE_MS = 10_000;
+
 export function createVideoScanner() {
   const videos = new Map<string, DetectedVideo>();
   const hookedVideos = new WeakSet<HTMLVideoElement>();
   let mediaContext: PageMediaContext | null = null;
+  /** blob 播放前刚拉到的 http CDN，用于关联 xgplayer / MSE */
+  const recentCdnCaptures: { url: string; at: number }[] = [];
 
   function getContext(): PageMediaContext {
     if (!mediaContext) mediaContext = extractPageMediaContext();
     return mediaContext;
   }
 
+  function recordCdnCapture(url: string) {
+    const normalized = normalizeHttpUrl(url);
+    if (!normalized) return;
+    const now = Date.now();
+    recentCdnCaptures.push({ url: normalized, at: now });
+    while (
+      recentCdnCaptures.length > 0 &&
+      now - recentCdnCaptures[0].at > CDN_CAPTURE_TTL_MS
+    ) {
+      recentCdnCaptures.shift();
+    }
+    if (recentCdnCaptures.length > 40) recentCdnCaptures.splice(0, recentCdnCaptures.length - 40);
+  }
+
+  /** blob: 无法投屏；尝试绑定此前数秒内捕获的 CDN 直链。 */
+  function tryLinkBlobVideoToRecentCdn(el: HTMLVideoElement, fallbackIndex?: number) {
+    const src = getVideoElementUrl(el);
+    if (!src.startsWith('blob:')) return;
+    const now = Date.now();
+    for (let i = recentCdnCaptures.length - 1; i >= 0; i--) {
+      const entry = recentCdnCaptures[i];
+      if (now - entry.at > CDN_BLOB_LINK_MAX_AGE_MS) break;
+      addVideo({ url: entry.url, source: 'network' }, fallbackIndex);
+      return;
+    }
+  }
+
   function addVideo(video: DetectedVideo, fallbackIndex?: number) {
     const normalized = normalizeHttpUrl(video.url);
     if (!normalized) return;
+    recordCdnCapture(normalized);
     const title =
       video.title?.trim() || buildVideoTitle(normalized, getContext(), fallbackIndex);
     const entry: DetectedVideo = { ...video, url: normalized, title };
@@ -372,13 +437,16 @@ export function createVideoScanner() {
     hookedVideos.add(el);
     const refresh = () => {
       const src = getVideoElementUrl(el);
-      if (src) {
-        addVideo({ url: src, source: 'video-element' }, index);
+      if (src.startsWith('blob:')) {
+        tryLinkBlobVideoToRecentCdn(el, index);
+        return;
       }
+      if (src) addVideo({ url: src, source: 'video-element' }, index);
     };
     for (const event of ['loadedmetadata', 'loadeddata', 'play', 'emptied'] as const) {
       el.addEventListener(event, refresh);
     }
+    refresh();
   }
 
   function scanPerformanceResources() {
@@ -395,14 +463,51 @@ export function createVideoScanner() {
   }
 
   function captureFromRequest(input: RequestInfo | URL) {
-    const url =
-      typeof input === 'string'
-        ? input
-        : input instanceof URL
-          ? input.href
-          : input.url;
+    const url = requestUrlFromInput(input);
     if (isCastableUrl(url) && looksLikeMediaUrl(url)) {
       addVideo({ url, source: 'network' });
+    }
+  }
+
+  async function captureFromFetchResponse(
+    input: RequestInfo | URL,
+    response: Response,
+  ): Promise<void> {
+    if (!isDouyinPage()) return;
+    const reqUrl = requestUrlFromInput(input);
+    if (!shouldParseDouyinNetworkBody(reqUrl)) return;
+    try {
+      const ct = response.headers.get('content-type') ?? '';
+      if (!/json|text|javascript/i.test(ct) && !shouldParseDouyinNetworkBody(reqUrl)) {
+        return;
+      }
+      const text = await response.text();
+      captureDouyinResponseBody(text, (url) => {
+        addVideo({ url, source: 'script-json' });
+      });
+    } catch {
+      /* body unreadable */
+    }
+  }
+
+  function captureFromXhr(xhr: XMLHttpRequest) {
+    if (!isDouyinPage()) return;
+    const reqUrl = xhr.responseURL || '';
+    if (!shouldParseDouyinNetworkBody(reqUrl)) return;
+    try {
+      const text =
+        typeof xhr.response === 'string'
+          ? xhr.response
+          : xhr.responseType === '' || xhr.responseType === 'text'
+            ? xhr.responseText
+            : '';
+      if (text) {
+        captureDouyinResponseBody(text, (url) => {
+          addVideo({ url, source: 'script-json' });
+        });
+      }
+    } catch {
+      /* ignore */
     }
   }
 
@@ -425,6 +530,9 @@ export function createVideoScanner() {
   function scan() {
     mediaContext = null;
     scanVideoElements();
+    if (isDouyinPage()) {
+      scanDouyinRenderData((url) => addVideo({ url, source: 'script-json' }));
+    }
     scanPerformanceResources();
     lastFrameMeta = buildFrameMeta();
   }
@@ -443,10 +551,20 @@ export function createVideoScanner() {
 
   return {
     scan,
-    getVideos: () => Array.from(videos.values()),
+    getVideos: () => {
+      const list = Array.from(videos.values());
+      if (isDouyinPage() && isDouyinFeedHome(location.href)) {
+        return refineDouyinFeedVideos(list, location.href, document.title, {
+          doc: document,
+        });
+      }
+      return list;
+    },
     getHints: getPageVideoHints,
     getFrameMeta: () => lastFrameMeta ?? buildFrameMeta(),
     addVideo,
     captureFromRequest,
+    captureFromFetchResponse,
+    captureFromXhr,
   };
 }

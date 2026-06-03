@@ -1,3 +1,4 @@
+import { refineDouyinFeedVideos } from './douyin-media.js';
 import { scanVideosInFrame } from './scan-in-frame.js';
 import type { FrameVideoScanMeta } from './video-scanner.js';
 import type { PageVideoHints } from './video-scanner.js';
@@ -12,7 +13,10 @@ export interface TabVideoScanResult {
   scan?: VideoScanDiagnostics;
 }
 
-type FrameScanPayload = TabVideoScanResult & { frameMeta?: FrameVideoScanMeta };
+type FrameScanPayload = TabVideoScanResult & {
+  frameMeta?: FrameVideoScanMeta;
+  douyinModal?: { modalId: string; streamUrls: string[] };
+};
 
 const RESTRICTED_PREFIXES = [
   'chrome://',
@@ -113,6 +117,7 @@ function mergeVideoResults(
         ? {
             blobVideoCount: hints.blobVideoCount + part.hints.blobVideoCount,
             isBilibili: hints.isBilibili || part.hints.isBilibili,
+            isDouyin: hints.isDouyin || part.hints.isDouyin,
           }
         : { ...part.hints };
     }
@@ -124,6 +129,12 @@ function mergeVideoResults(
     pageUrl,
     hints,
   };
+  if (merged.pageUrl) {
+    const modalStreamUrls = parts.flatMap((p) => p.douyinModal?.streamUrls ?? []);
+    merged.videos = refineDouyinFeedVideos(merged.videos, merged.pageUrl, merged.pageTitle, {
+      modalStreamUrls: modalStreamUrls.length > 0 ? modalStreamUrls : undefined,
+    });
+  }
   merged.scan = buildDiagnostics(parts, merged);
   return merged;
 }

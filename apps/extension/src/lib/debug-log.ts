@@ -63,11 +63,47 @@ export function log(
   schedulePersist();
 }
 
+export function formatUnknownError(error: unknown): string {
+  if (error instanceof Error) {
+    const msg = error.message?.trim();
+    return msg || error.name || 'Unknown error';
+  }
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object') {
+    const record = error as Record<string, unknown>;
+    if (typeof record.message === 'string' && record.message.trim()) {
+      return record.message.trim();
+    }
+    if (typeof record.error === 'string' && record.error.trim()) {
+      return record.error.trim();
+    }
+    try {
+      const json = JSON.stringify(error);
+      if (json && json !== '{}') return json;
+    } catch {
+      /* ignore */
+    }
+  }
+  return String(error);
+}
+
+export function toError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(formatUnknownError(error));
+}
+
 export function logError(scope: string, message: string, error: unknown, extra?: unknown): void {
-  log(scope, message, {
-    extra,
-    error: error instanceof Error ? { name: error.name, message: error.message } : String(error),
-  }, 'error');
+  log(
+    scope,
+    message,
+    {
+      extra,
+      error:
+        error instanceof Error
+          ? { name: error.name, message: error.message, stack: error.stack }
+          : formatUnknownError(error),
+    },
+    'error',
+  );
 }
 
 function sanitizeData(data: unknown): unknown {

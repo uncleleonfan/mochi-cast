@@ -1,12 +1,17 @@
+import {
+  extractPlayUrlsForAwemeId,
+  getDouyinModalId,
+  refineDouyinFeedVideos,
+} from './douyin-media.js';
+
 /**
  * Injected via chrome.scripting.executeScript when the content script is not loaded yet.
- * Must be self-contained (no imports).
  */
 export function scanVideosInFrame(): {
   videos: Array<{ url: string; title?: string; mimeType?: string; source: string }>;
   pageTitle: string;
   pageUrl: string;
-  hints?: { blobVideoCount: number; isBilibili: boolean };
+  hints?: { blobVideoCount: number; isBilibili: boolean; isDouyin: boolean };
   frameMeta?: {
     frameUrl: string;
     iframeCount: number;
@@ -15,11 +20,12 @@ export function scanVideosInFrame(): {
     blobVideoCount: number;
     htmlMediaHits: number;
   };
+  douyinModal?: { modalId: string; streamUrls: string[] };
 } {
   type Scanner = {
     scan: () => void;
     getVideos: () => Array<{ url: string; title?: string; mimeType?: string; source: string }>;
-    getHints?: () => { blobVideoCount: number; isBilibili: boolean };
+    getHints?: () => { blobVideoCount: number; isBilibili: boolean; isDouyin: boolean };
     getFrameMeta?: () => {
       frameUrl: string;
       iframeCount: number;
@@ -86,6 +92,10 @@ export function scanVideosInFrame(): {
     return undefined;
   };
 
+  const host = location.hostname;
+  const isDouyin =
+    host.includes('douyin.com') || host.includes('iesdouyin.com');
+
   let vodName: string | undefined;
   const urlLabels = new Map<string, string>();
   const docTitle = document.title.trim();
@@ -93,6 +103,14 @@ export function scanVideosInFrame(): {
   const docShort = playingMatch?.[1]?.trim() || docTitle.replace(/\s*[-–|]\s*[^-–|]{2,40}$/, '').trim();
 
   const titleFor = (url: string): string => {
+    if (isDouyin) {
+      try {
+        const tail = decodeURIComponent(new URL(url).pathname.split('/').pop() || '');
+        if (tail.toLowerCase() === 'play') return 'play';
+      } catch {
+        /* ignore */
+      }
+    }
     const parts: string[] = [];
     if (vodName) parts.push(vodName);
     const ep = urlLabels.get(url) ?? episodeFromPath(url);
@@ -209,9 +227,53 @@ export function scanVideosInFrame(): {
     }
   };
 
+  const douyinCdn =
+    /douyinvod|zjcdn|byte(?:ic)?cdn/i;
+  const douyinPath =
+    /\/video\/|mime_type=video|bytevc1|tos\/cn\//i;
+  const addDouyinUrl = (raw: string) => {
+    const u = normalizeHttp(raw.replace(/\\\//g, '/'));
+    if (!u || !douyinCdn.test(u) || !douyinPath.test(u)) return;
+    add(u, 'script-json');
+  };
+  const scanDouyinChunk = (text: string) => {
+    let chunk = text.trim();
+    try {
+      if (chunk.includes('%7B') || chunk.startsWith('%')) chunk = decodeURIComponent(chunk);
+    } catch {
+      /* keep */
+    }
+    const decoded = decodeEscapes(chunk);
+    if (decoded.startsWith('{') || decoded.startsWith('[')) {
+      try {
+        const walk = (v: unknown) => {
+          if (typeof v === 'string') addDouyinUrl(v);
+          else if (Array.isArray(v)) v.forEach(walk);
+          else if (v && typeof v === 'object')
+            Object.values(v as Record<string, unknown>).forEach(walk);
+        };
+        walk(JSON.parse(decoded));
+      } catch {
+        /* regex fallback */
+      }
+    }
+    for (const m of decoded.matchAll(/https?:\/\/[^\s"'<>\\]+douyinvod[^\s"'<>\\]*/gi)) {
+      addDouyinUrl(m[0]);
+    }
+  };
+
   scanTextChunk(document.documentElement.innerHTML.slice(0, 1_500_000));
+  if (isDouyin) {
+    const render = document.getElementById('RENDER_DATA');
+    if (render?.textContent) scanDouyinChunk(render.textContent);
+    scanDouyinChunk(document.documentElement.innerHTML.slice(0, 800_000));
+  }
   document.querySelectorAll('script:not([src])').forEach((script) => {
     const text = script.textContent ?? '';
+    if (isDouyin && (script.id === 'RENDER_DATA' || text.includes('play_addr'))) {
+      scanDouyinChunk(text);
+      return;
+    }
     if (text.includes('m3u8') || text.includes('player_')) scanTextChunk(text);
   });
 
@@ -229,14 +291,28 @@ export function scanVideosInFrame(): {
     /* ignore */
   }
 
-  const host = location.hostname;
+  const feedPath = location.pathname.replace(/\/$/, '') || '/';
+  const isDouyinFeed =
+    isDouyin &&
+    (feedPath === '/' || feedPath === '/jingxuan' || feedPath === '/discover' || feedPath === '/hot');
+  const modalId = getDouyinModalId(location.href);
+  const modalStreamUrls = modalId ? extractPlayUrlsForAwemeId(document, modalId) : [];
+  const finalVideos = isDouyinFeed
+    ? refineDouyinFeedVideos(videos, location.href, docTitle, {
+        doc: document,
+        modalStreamUrls,
+      })
+    : videos;
+
   return {
-    videos,
+    videos: finalVideos,
     pageTitle: document.title,
     pageUrl: location.href,
+    douyinModal: modalId ? { modalId, streamUrls: modalStreamUrls } : undefined,
     hints: {
       blobVideoCount,
       isBilibili: host.includes('bilibili.com') || host.includes('bilibili.tv'),
+      isDouyin,
     },
     frameMeta: {
       frameUrl: location.href,
