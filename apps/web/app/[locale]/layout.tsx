@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Footer } from '@/components/footer';
+import { GoogleAnalytics } from '@/components/google-analytics';
 import { Header } from '@/components/header';
 import { getContent, isLocale, locales, type Locale } from '@/lib/i18n';
 import '../globals.css';
@@ -51,6 +52,7 @@ export default async function LocaleLayout({
         <Header locale={locale} />
         <main>{children}</main>
         <Footer locale={locale} />
+        <GoogleAnalytics />
       </body>
     </html>
   );

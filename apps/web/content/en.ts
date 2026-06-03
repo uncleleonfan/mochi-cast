@@ -178,7 +178,10 @@ export const content: SiteContent = {
       { label: 'Storage', text: 'Save preferences and last-used TV device.' },
     ],
     notCollectTitle: 'We Do NOT Collect',
-    notCollect: ['No analytics or tracking', 'No browsing history uploads', 'No third-party sharing'],
+    notCollect: ['No analytics in the extension', 'No browsing history uploads', 'No third-party sharing'],
+    websiteTitle: 'Website (this site)',
+    websiteAnalytics:
+      'This marketing site uses Google Analytics 4 to collect anonymous usage data (page views, approximate region, device type) to understand how the site is used. Google may use cookies; see Google’s Privacy Policy. The browser extension itself does not use Google Analytics.',
     permissionsTitle: 'Permissions',
     permissions: [
       '<all_urls> — Required to sniff video URLs and send DLNA SOAP to local devices.',

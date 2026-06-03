@@ -161,3 +161,12 @@ Chrome Web Store 上架需：
 | Build Command | **关闭 Override**，使用仓库 `vercel.json`（`pnpm build`） |
 
 保存后 **Redeploy** 即可。切勿在 Install Command 里写 `cd ../..`——Root Directory 已是 `apps/web` 时，这条命令会把工作目录带到仓库外（`/），从而报错。
+
+### Google Analytics
+
+1. 在 [Google Analytics](https://analytics.google.com/) 创建 GA4 媒体资源，复制 Measurement ID（`G-XXXXXXXXXX`）
+2. 在 Vercel → **Settings → Environment Variables** 添加：
+   - `NEXT_PUBLIC_GA_MEASUREMENT_ID` = 你的 Measurement ID
+3. 重新部署后生效；未配置时不会加载任何追踪脚本
+
+本地开发可复制 `apps/web/.env.example` 为 `apps/web/.env.local` 进行测试。

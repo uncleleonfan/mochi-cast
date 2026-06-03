@@ -32,6 +32,9 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
         ))}
       </ul>
 
+      <h2>{p.websiteTitle}</h2>
+      <p>{p.websiteAnalytics}</p>
+
       <h2>{p.permissionsTitle}</h2>
       <ul>
         {p.permissions.map((item) => (

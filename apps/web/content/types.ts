@@ -71,6 +71,8 @@ export interface SiteContent {
     access: { label: string; text: string }[];
     notCollectTitle: string;
     notCollect: string[];
+    websiteTitle: string;
+    websiteAnalytics: string;
     permissionsTitle: string;
     permissions: string[];
     contactTitle: string;

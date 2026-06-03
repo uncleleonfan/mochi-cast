@@ -174,7 +174,10 @@ export const content: SiteContent = {
       { label: '本地存储', text: '保存你的偏好与上次使用的电视设备。' },
     ],
     notCollectTitle: '我们不收集',
-    notCollect: ['无分析或追踪', '不上传浏览历史', '不与第三方共享数据'],
+    notCollect: ['扩展内无分析或追踪', '不上传浏览历史', '不与第三方共享数据'],
+    websiteTitle: '官网（本网站）',
+    websiteAnalytics:
+      '本营销网站使用 Google Analytics 4 统计匿名访问数据（如页面浏览、大致地区、设备类型），用于了解网站使用情况。Google 可能使用 Cookie；详见 Google 隐私政策。浏览器扩展本身不使用 Google Analytics。',
     permissionsTitle: '权限说明',
     permissions: [
       '<all_urls> — 用于嗅探视频 URL 并向局域网设备发送 DLNA SOAP 请求。',
