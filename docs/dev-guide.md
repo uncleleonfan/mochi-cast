@@ -27,6 +27,7 @@ pnpm dev
 ```
 mochi-cast/
 ├── apps/extension/       # 浏览器扩展 (WXT)
+├── apps/web/             # 官网 (Next.js)
 ├── packages/dlna-core/   # DLNA/UPnP 协议库
 └── docs/                 # 文档
 ```
@@ -58,7 +59,9 @@ mochi-cast/
 | 命令 | 说明 |
 |------|------|
 | `pnpm dev` | 扩展开发模式 |
+| `pnpm dev:web` | 官网开发模式 (http://localhost:3000) |
 | `pnpm build` | 构建全部包 |
+| `pnpm build:web` | 仅构建官网 |
 | `pnpm test` | 运行单元测试 |
 | `pnpm --filter @mochi-cast/extension zip` | 打包扩展 zip |
 
@@ -130,5 +133,17 @@ pnpm --filter @mochi-cast/extension zip
 Chrome Web Store 上架需：
 
 - 开发者账号（$5 一次性）
-- 隐私政策 URL（见 `apps/extension/public/privacy-policy.html`）
+- 隐私政策 URL（部署官网后使用 `https://<域名>/zh/privacy`）
 - 权限说明（`<all_urls>` 用于视频嗅探与局域网 SOAP）
+
+## 官网部署（GitHub + Vercel）
+
+官网代码在 `apps/web`，通过 **GitHub 仓库绑定 Vercel** 自动部署，无需本地 `vercel deploy`。
+
+1. 打开 [vercel.com/new](https://vercel.com/new)，导入 `uncleleonfan/mochi-cast`
+2. **Root Directory** 设为 `apps/web`
+3. Framework 选 **Next.js**（[`apps/web/vercel.json`](../apps/web/vercel.json) 已配置 `pnpm install` / `pnpm build`）
+4. 建议开启 **Include source files outside of the Root Directory**（monorepo 依赖根目录 `pnpm-lock.yaml`）
+5. 点击 Deploy；之后每次 push 到 `main` 会自动 Production 部署
+
+本地预览：`pnpm dev:web`

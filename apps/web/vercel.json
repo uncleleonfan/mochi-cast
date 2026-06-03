@@ -1,5 +1,5 @@
 {
   "framework": "nextjs",
-  "installCommand": "cd ../.. && pnpm install",
-  "buildCommand": "cd ../.. && pnpm --filter @mochi-cast/web build"
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm build"
 }
