@@ -38,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mochi-cast-extension
-          path: apps/extension/.output/mochi-cast-0.1.0-chrome.zip
+          path: apps/extension/.output/mochi-cast-*-chrome.zip

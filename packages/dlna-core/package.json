@@ -1,6 +1,6 @@
 {
   "name": "@mochi-cast/dlna-core",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "DLNA/UPnP protocol library for Mochi Cast",
   "license": "MIT",
   "type": "module",

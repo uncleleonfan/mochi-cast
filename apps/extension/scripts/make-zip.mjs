@@ -1,5 +1,5 @@
 import { execSync } from 'node:child_process';
-import { existsSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { platform } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -8,7 +8,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const sourceDir = join(root, '.output', 'chrome-mv3');
 const outDir = join(root, '.output');
-const outZip = join(outDir, 'mochi-cast-0.1.0-chrome.zip');
+const version = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')).version;
+const outZip = join(outDir, `mochi-cast-${version}-chrome.zip`);
 
 if (!existsSync(sourceDir)) {
   console.error('Build output not found:', sourceDir);
