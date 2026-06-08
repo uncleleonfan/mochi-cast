@@ -1,6 +1,6 @@
 # 麻薯投屏 / Mochi Cast
 
-[![CI](https://github.com/mochi-cast/mochi-cast/actions/workflows/ci.yml/badge.svg)](https://github.com/mochi-cast/mochi-cast/actions/workflows/ci.yml)
+[![CI](https://github.com/uncleleonfan/mochi-cast/actions/workflows/ci.yml/badge.svg)](https://github.com/uncleleonfan/mochi-cast/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-orange.svg)](LICENSE)
 
 **麻薯投屏**是一款开源浏览器扩展，让你在一键将网页视频投送到同一 Wi-Fi 下的智能电视——支持小米、TCL、Sony、LG 等 DLNA 电视，无需安装电视端 App。
