@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Locale } from '@/lib/i18n';
 import { getContent, localePath } from '@/lib/i18n';
-import { chromeWebStoreUrl, GITHUB_REPO } from '@/lib/site';
+import { chromeWebStoreUrl, DOWNLOAD_ZIP, GITHUB_REPO } from '@/lib/site';
 import { SiteLogo } from './site-logo';
 
 export function Hero({ locale }: { locale: Locale }) {
@@ -18,20 +18,18 @@ export function Hero({ locale }: { locale: Locale }) {
           </div>
         </div>
         <p className="max-w-2xl text-lg leading-relaxed text-[var(--color-muted)]">{c.hero.description}</p>
-        <div className="mt-8 flex flex-wrap gap-4 justify-center md:justify-start">
+        <div className="mt-8 flex flex-wrap items-center gap-3 justify-center md:justify-start">
           <a
-            href={chromeWebStoreUrl(locale)}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={DOWNLOAD_ZIP}
             className="rounded-xl bg-brand px-6 py-3 font-semibold text-white shadow-md transition hover:bg-brand-hover"
           >
-            {c.hero.chromeStore}
+            {c.hero.downloadZip}
           </a>
           <Link
             href={localePath(locale, 'download')}
             className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3 font-semibold transition hover:border-brand"
           >
-            {c.hero.download}
+            {c.hero.installGuide}
           </Link>
           <a
             href={GITHUB_REPO}
@@ -42,6 +40,18 @@ export function Hero({ locale }: { locale: Locale }) {
             {c.hero.github}
           </a>
         </div>
+        <p className="mt-4 text-sm text-[var(--color-muted)]">
+          {c.hero.chromeStoreBefore}{' '}
+          <a
+            href={chromeWebStoreUrl(locale)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brand hover:underline"
+          >
+            {c.hero.chromeStore}
+          </a>{' '}
+          {c.hero.chromeStoreAfter}
+        </p>
       </div>
     </section>
   );

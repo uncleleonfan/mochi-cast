@@ -23,8 +23,11 @@ export interface SiteContent {
     title: string;
     subtitle: string;
     description: string;
+    downloadZip: string;
+    installGuide: string;
     chromeStore: string;
-    download: string;
+    chromeStoreBefore: string;
+    chromeStoreAfter: string;
     github: string;
   };
   features: {
@@ -40,10 +43,14 @@ export interface SiteContent {
   download: {
     title: string;
     description: string;
-    chromeStoreButton: string;
+    zipSectionTitle: string;
+    zipSectionBadge: string;
     zipButton: string;
     releaseLink: string;
-    storeNote: string;
+    zipNote: string;
+    chromeSectionTitle: string;
+    chromeSectionDescription: string;
+    chromeStoreButton: string;
     requirements: string;
     reqItems: string[];
     stepsTitle: string;

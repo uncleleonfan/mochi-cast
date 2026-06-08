@@ -27,7 +27,7 @@ export const content: SiteContent = {
       download: {
         title: 'Download Mochi Cast - Chrome & Edge DLNA Casting Extension',
         description:
-          'Install Mochi Cast from the Chrome Web Store, or download the .zip from GitHub Releases for Chrome/Edge DLNA casting.',
+          'Download the Mochi Cast .zip for Chrome/Edge sideload install, or optionally use the Chrome Web Store.',
       },
       guide: {
         title: 'User Guide - Mochi Cast DLNA Setup & FAQ',
@@ -59,8 +59,11 @@ export const content: SiteContent = {
     subtitle: '麻薯投屏',
     description:
       'An open-source browser extension that casts web videos to your smart TV over Wi-Fi — supporting Xiaomi, TCL, Sony, LG, and other DLNA renderers.',
-    chromeStore: 'Chrome Web Store',
-    download: 'Other downloads',
+    downloadZip: 'Download (ZIP)',
+    installGuide: 'Install guide',
+    chromeStore: 'Chrome Web Store (optional)',
+    chromeStoreBefore: 'Or install from the',
+    chromeStoreAfter: 'if available in your region.',
     github: 'View on GitHub',
   },
   features: {
@@ -103,11 +106,17 @@ export const content: SiteContent = {
   download: {
     title: 'Download & Install',
     description:
-      'Install from the Chrome Web Store with one click, or download the extension package from GitHub Releases / build from source.',
-    chromeStoreButton: 'Install from Chrome Web Store',
+      'Download the ZIP package and load the unpacked extension in Chrome or Edge. The Chrome Web Store is an optional alternative.',
+    zipSectionTitle: 'ZIP package',
+    zipSectionBadge: 'Recommended',
     zipButton: 'Download v1.0.0 (ZIP)',
     releaseLink: 'View Release Notes',
-    storeNote: 'Chrome Web Store is the recommended install method and receives automatic updates.',
+    zipNote:
+      'Works with Chrome, Edge, and other Chromium browsers. Extract the zip, open chrome://extensions, enable Developer mode, then Load unpacked.',
+    chromeSectionTitle: 'Chrome Web Store',
+    chromeSectionDescription:
+      'One-click install with automatic updates if you can access the Chrome Web Store in your region.',
+    chromeStoreButton: 'Install from Chrome Web Store',
     requirements: 'Requirements',
     reqItems: [
       'Google Chrome 120+ or Microsoft Edge 120+',
