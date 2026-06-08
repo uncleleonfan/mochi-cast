@@ -1,18 +1,19 @@
+import { SITE_LOGO } from '@/lib/site';
+
 type SiteLogoProps = {
   size: number;
   className?: string;
   priority?: boolean;
+  alt?: string;
 };
 
-/** Static PNG from /public — native img avoids next/image re-fetch flash on tab focus / client navigation. */
-export function SiteLogo({ size, className, priority }: SiteLogoProps) {
-  const src = size >= 64 ? '/icons/icon128.png' : '/icons/icon48.png';
-
+/** Transparent brand mascot from /public/logo.png */
+export function SiteLogo({ size, className, priority, alt = '' }: SiteLogoProps) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={src}
-      alt=""
+      src={SITE_LOGO}
+      alt={alt}
       width={size}
       height={size}
       className={className}

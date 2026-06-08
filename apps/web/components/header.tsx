@@ -26,7 +26,7 @@ export function Header({ locale }: { locale: Locale }) {
     <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <Link href={localePath(locale)} className="flex items-center gap-2 font-semibold">
-          <SiteLogo size={32} className="rounded-lg" />
+          <SiteLogo size={32} className="h-8 w-8 object-contain" />
           <span>{c.hero.title}</span>
         </Link>
 

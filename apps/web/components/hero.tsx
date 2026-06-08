@@ -11,7 +11,7 @@ export function Hero({ locale }: { locale: Locale }) {
     <section className="mx-auto max-w-6xl px-4 py-16 md:py-24">
       <div className="flex flex-col items-center text-center md:items-start md:text-left">
         <div className="mb-6 flex items-center gap-4">
-          <SiteLogo size={80} priority className="rounded-2xl shadow-lg" />
+          <SiteLogo size={80} priority className="h-20 w-20 object-contain" />
           <div>
             <h1 className="text-4xl font-bold tracking-tight md:text-5xl">{c.hero.title}</h1>
             <p className="text-lg text-[var(--color-muted)]">{c.hero.subtitle}</p>
