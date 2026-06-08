@@ -1,6 +1,8 @@
 import {
   fetchDeviceDescription,
+  hostOctetFromIpv4,
   probeDeviceDetailed,
+  quickScanSubnetPrefixes,
   reconnectProbeDevice,
   scanSubnetForDevices,
   type DiscoveryTrace,
@@ -105,8 +107,8 @@ interface NetworkInterface {
 
 /** Common /24 prefixes when automatic detection is unavailable (desktop Chrome hides local IP). */
 const COMMON_SUBNET_PREFIXES = [
-  '192.168.1',
   '192.168.0',
+  '192.168.1',
   '192.168.31',
   '192.168.43',
   '192.168.50',
@@ -214,7 +216,7 @@ async function getPrefixFromWebRtc(): Promise<string | null> {
         resolve(prefix);
       };
 
-      const timeout = setTimeout(() => finish(null, 'timeout_5s'), 5000);
+      const timeout = setTimeout(() => finish(null, 'timeout_2s'), 2000);
 
       const tryCandidate = (candidate: string) => {
         candidates.push(candidate);
@@ -258,8 +260,13 @@ export async function getPrioritizedSubnetPrefixes(options?: {
   const fromSystem = await getPrefixFromChromeSystem();
   add(fromSystem, 'chromeSystem');
 
-  const fromWebRtc = await getPrefixFromWebRtc();
-  add(fromWebRtc, 'webrtc');
+  const hasKnownPrefix = prefixes.length > 0;
+  if (!hasKnownPrefix) {
+    const fromWebRtc = await getPrefixFromWebRtc();
+    add(fromWebRtc, 'webrtc');
+  } else {
+    log('network', 'WebRTC skipped (prefix already known)', { prefixes });
+  }
 
   for (const prefix of COMMON_SUBNET_PREFIXES) {
     add(prefix, 'common');
@@ -299,7 +306,7 @@ export async function discoverDevices(options: {
 }): Promise<DiscoveryResult> {
   setDebugEnabled(Boolean(options.debug));
   const manualIps = options.manualIps ?? [];
-  const timeoutMs = options.timeoutMs ?? 12_000;
+  const timeoutMs = options.timeoutMs ?? 20_000;
   const deadline = Date.now() + timeoutMs;
   const devices: DlnaDevice[] = [];
   const sessionId = `${Date.now()}`;
@@ -341,37 +348,89 @@ export async function discoverDevices(options: {
       customSubnet: settings.subnetPrefix,
       lastDeviceIp: last?.ip,
     });
+    const priorityHosts = [
+      last?.ip ? hostOctetFromIpv4(last.ip) : null,
+      ...settings.manualDevices.map((d) => hostOctetFromIpv4(d.ip)),
+    ].filter((h): h is number => h != null);
+
     log('discovery', 'subnet_scan_start', {
       prefixes,
       primary,
+      priorityHosts,
       remainingMs: deadline - Date.now(),
-      mode: 'sequential_priority',
+      mode: 'quick_multi_then_primary_full',
     });
 
-    const byPrefix: { prefix: string; count: number }[] = [];
-    for (let i = 0; i < prefixes.length; i++) {
-      if (Date.now() >= deadline) break;
-      const prefix = prefixes[i];
-      const isPrimary = prefix === primary;
-      const scanned = await scanSubnetForDevices(prefix, fetchFn, {
-        concurrency: isPrimary ? 40 : 28,
-        deadline,
-        probeTimeoutMs: isPrimary ? 1500 : 1000,
-        tryAlternatePorts: isPrimary,
+    if (last?.ip && Date.now() < deadline) {
+      const direct = await probeDeviceDetailed(last.ip, fetchFn, {
+        timeoutMs: Math.min(5000, deadline - Date.now()),
+        tryAlternatePorts: true,
         trace,
         dlnaFriendlyName: 'MochiCast',
       });
-      byPrefix.push({ prefix, count: scanned.length });
-      devices.push(...scanned);
-      if (scanned.length > 0) {
-        log('discovery', 'subnet_scan_early_exit', { prefix, found: scanned.length });
-        break;
+      if (direct.device) {
+        devices.push(direct.device);
+        log('discovery', 'last_ip_direct_hit', { ip: last.ip, name: direct.device.name });
       }
     }
-    log('discovery', 'subnet_scan_done', {
-      found: devices.length,
-      byPrefix,
-    });
+
+    if (devices.length === 0 && Date.now() < deadline) {
+      const quickFound = await quickScanSubnetPrefixes(prefixes, fetchFn, {
+        maxPrefixes: 4,
+        deadline,
+        concurrency: 48,
+        probeTimeoutMs: 1500,
+        tryAlternatePorts: true,
+        priorityHosts,
+        trace,
+        dlnaFriendlyName: 'MochiCast',
+      });
+      devices.push(...quickFound);
+      if (quickFound.length > 0) {
+        log('discovery', 'quick_multi_prefix_hit', {
+          count: quickFound.length,
+          ips: quickFound.map((d) => d.ip),
+        });
+      }
+    }
+
+    if (devices.length === 0 && primary && Date.now() < deadline) {
+      const scanned = await scanSubnetForDevices(primary, fetchFn, {
+        concurrency: 40,
+        deadline,
+        probeTimeoutMs: 1200,
+        tryAlternatePorts: true,
+        priorityHosts,
+        trace,
+        dlnaFriendlyName: 'MochiCast',
+      });
+      devices.push(...scanned);
+      if (scanned.length > 0) {
+        log('discovery', 'primary_subnet_full_hit', { prefix: primary, found: scanned.length });
+      }
+    }
+
+    if (devices.length === 0 && Date.now() < deadline) {
+      for (const prefix of prefixes) {
+        if (prefix === primary || Date.now() >= deadline) continue;
+        const scanned = await scanSubnetForDevices(prefix, fetchFn, {
+          concurrency: 32,
+          deadline,
+          probeTimeoutMs: 1000,
+          tryAlternatePorts: false,
+          priorityHosts,
+          trace,
+          dlnaFriendlyName: 'MochiCast',
+        });
+        devices.push(...scanned);
+        if (scanned.length > 0) {
+          log('discovery', 'secondary_subnet_hit', { prefix, found: scanned.length });
+          break;
+        }
+      }
+    }
+
+    log('discovery', 'subnet_scan_done', { found: devices.length });
   } else if (options.includeSubnetScan === false) {
     log('discovery', 'subnet_scan_skipped', { reason: 'includeSubnetScan=false' });
   } else {

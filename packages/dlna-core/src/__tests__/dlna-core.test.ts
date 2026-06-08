@@ -7,7 +7,11 @@ import {
   parseDeviceDescription,
   parseSsdpResponse,
   buildReconnectProbeUrls,
+  buildQuickProbeHosts,
+  hostOctetFromIpv4,
   probeDeviceAtIp,
+  QUICK_PROBE_DHCP_CORE_HOSTS,
+  quickScanSubnetPrefixes,
   reconnectProbeDevice,
   resolveUrl,
   scanSubnetForDevices,
@@ -68,6 +72,31 @@ describe('Reconnect probe', () => {
 });
 
 describe('Subnet scan', () => {
+  it('includes common TV DHCP host octets in quick probe list', () => {
+    expect(buildQuickProbeHosts()).toContain(103);
+    expect(buildQuickProbeHosts()).toContain(150);
+    expect(buildQuickProbeHosts()).toContain(1);
+    expect(QUICK_PROBE_DHCP_CORE_HOSTS[0]).toBe(100);
+    expect(QUICK_PROBE_DHCP_CORE_HOSTS.at(-1)).toBe(149);
+  });
+
+  it('quickScanSubnetPrefixes finds TV on 192.168.0.103 before wrong prefix', async () => {
+    const fetchFn = vi.fn(async (url: string) => {
+      if (url.startsWith('http://192.168.0.103') && url.includes('description.xml')) {
+        return new Response(sampleRendererXml, { status: 200 });
+      }
+      return new Response('', { status: 404 });
+    });
+    const devices = await quickScanSubnetPrefixes(['192.168.1', '192.168.0'], fetchFn, {
+      maxPrefixes: 2,
+      probeTimeoutMs: 200,
+      tryAlternatePorts: false,
+      concurrency: 64,
+    });
+    expect(devices).toHaveLength(1);
+    expect(devices[0]?.ip).toBe('192.168.0.103');
+  });
+
   it('stops probing when deadline is reached', async () => {
     const fetchFn = vi.fn((_url: string, init?: RequestInit) => {
       return new Promise<Response>((_resolve, reject) => {

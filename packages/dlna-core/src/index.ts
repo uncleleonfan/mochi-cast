@@ -1,4 +1,4 @@
-import { discoverViaSsdp, parseDeviceDescription, probeDeviceAtIp, scanSubnetForDevices } from './discovery.js';
+import { discoverViaSsdp, parseDeviceDescription, probeDeviceAtIp, quickScanSubnetPrefixes, scanSubnetForDevices } from './discovery.js';
 import { AvTransportClient } from './av-transport.js';
 import type {
   DeviceProfile,
@@ -24,13 +24,20 @@ export type {
 } from './discovery.js';
 export {
   buildProbeOrigins,
+  buildQuickProbeHosts,
   buildReconnectProbeUrls,
+  hostOctetFromIpv4,
   normalizeProbeTarget,
   probeDeviceDetailed,
   reconnectProbeDevice,
   COMMON_PROBE_PORTS,
   FAST_PROBE_PORTS,
   PROBE_HTTP_PROFILES,
+  QUICK_PROBE_DHCP_CORE_HOSTS,
+  QUICK_PROBE_DHCP_EXTENDED_HOSTS,
+  QUICK_PROBE_GATEWAY_HOSTS,
+  QUICK_PROBE_HOSTS,
+  QUICK_PROBE_MANUAL_HINT_HOSTS,
 } from './discovery.js';
 export * from './discovery.js';
 export * from './profiles.js';

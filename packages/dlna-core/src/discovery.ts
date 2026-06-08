@@ -128,8 +128,49 @@ export const COMMON_PROBE_PORTS = [
 /** Fewer ports during subnet scan to stay within time budget. */
 export const FAST_PROBE_PORTS = [undefined, 49152, 8080] as const;
 
-/** Host octets probed first — many TVs use high DHCP addresses. */
-export const QUICK_PROBE_HOSTS = [1, 2, 100, 101, 102, 150, 200, 254];
+/** Router / gateway — rarely the TV itself, but cheap to probe first. */
+export const QUICK_PROBE_GATEWAY_HOSTS = [1, 2, 254] as const;
+
+/**
+ * Core home-router DHCP pool (typical pools: .100–.199 or .100–.200).
+ * Most smart TVs (小米/TCL/Sony 等) use DHCP and land here.
+ */
+export const QUICK_PROBE_DHCP_CORE_HOSTS = Array.from({ length: 50 }, (_, i) => 100 + i);
+
+/** Busy LANs — TVs connected later often get .150–.180. */
+export const QUICK_PROBE_DHCP_EXTENDED_HOSTS = Array.from({ length: 31 }, (_, i) => 150 + i);
+
+/** Manual / reserved addresses seen in the wild (outside default pool). */
+export const QUICK_PROBE_MANUAL_HINT_HOSTS = [10, 20, 50, 88, 200] as const;
+
+/** Host octets for the first-pass subnet scan (before probing .3–.99, .201+). */
+export const QUICK_PROBE_HOSTS: number[] = [
+  ...QUICK_PROBE_GATEWAY_HOSTS,
+  ...QUICK_PROBE_DHCP_CORE_HOSTS,
+  ...QUICK_PROBE_DHCP_EXTENDED_HOSTS,
+  ...QUICK_PROBE_MANUAL_HINT_HOSTS,
+];
+
+export function hostOctetFromIpv4(ip: string): number | null {
+  const parts = ip.trim().split('.');
+  if (parts.length !== 4) return null;
+  const host = Number(parts[3]);
+  if (!Number.isInteger(host) || host < 1 || host > 254) return null;
+  return host;
+}
+
+export function buildQuickProbeHosts(priorityHosts: number[] = []): number[] {
+  const seen = new Set<number>();
+  const ordered: number[] = [];
+  const add = (h: number) => {
+    if (h < 1 || h > 254 || seen.has(h)) return;
+    seen.add(h);
+    ordered.push(h);
+  };
+  for (const h of priorityHosts) add(h);
+  for (const h of QUICK_PROBE_HOSTS) add(h);
+  return ordered;
+}
 
 export type DiscoveryTrace = (event: string, detail?: Record<string, unknown>) => void;
 
@@ -193,6 +234,8 @@ export interface SubnetScanOptions {
   tryAlternatePorts?: boolean;
   dlnaFriendlyName?: string;
   trace?: DiscoveryTrace;
+  /** Host octets (1–254) probed before the rest of the subnet. */
+  priorityHosts?: number[];
 }
 
 /** Parse user input: plain IP, IP:port, or full http(s) description URL. */
@@ -604,7 +647,9 @@ export async function scanSubnetForDevices(
     }
   };
 
-  const quickHosts = QUICK_PROBE_HOSTS.filter((h) => h >= start && h <= end);
+  const quickHosts = buildQuickProbeHosts(options.priorityHosts).filter(
+    (h) => h >= start && h <= end,
+  );
   await runBatch('quick', quickHosts);
 
   const remaining: number[] = [];
@@ -617,6 +662,65 @@ export async function scanSubnetForDevices(
     prefix: subnetPrefix,
     found: devices.length,
     ms: Date.now() - scanStarted,
+    names: devices.map((d) => d.name),
+  });
+
+  return devices;
+}
+
+/** Parallel quick probe across several /24 prefixes (common when LAN prefix is unknown). */
+export async function quickScanSubnetPrefixes(
+  subnetPrefixes: string[],
+  fetchFn: typeof fetch = fetch,
+  options: SubnetScanOptions & { maxPrefixes?: number } = {},
+): Promise<DlnaDevice[]> {
+  const maxPrefixes = options.maxPrefixes ?? 4;
+  const prefixes = subnetPrefixes.slice(0, maxPrefixes);
+  const deadline = options.deadline;
+  const probeTimeoutMs = options.probeTimeoutMs ?? 1200;
+  const trace = options.trace;
+  const devices: DlnaDevice[] = [];
+  const seenIds = new Set<string>();
+  const concurrency = options.concurrency ?? 48;
+  const isExpired = () => deadline !== undefined && Date.now() >= deadline;
+
+  const quickHosts = buildQuickProbeHosts(options.priorityHosts);
+  const targets: string[] = [];
+  for (const prefix of prefixes) {
+    for (const host of quickHosts) {
+      targets.push(`${prefix}.${host}`);
+    }
+  }
+
+  trace?.('quick_multi_prefix_start', {
+    prefixes,
+    targetCount: targets.length,
+    priorityHosts: options.priorityHosts,
+  });
+
+  for (let i = 0; i < targets.length; i += concurrency) {
+    if (isExpired()) break;
+    const batch = targets.slice(i, i + concurrency);
+    const results = await Promise.all(
+      batch.map((ip) =>
+        probeDeviceAtIp(ip, fetchFn, {
+          timeoutMs: probeTimeoutMs,
+          trace,
+          tryAlternatePorts: options.tryAlternatePorts ?? true,
+          dlnaFriendlyName: options.dlnaFriendlyName,
+        }),
+      ),
+    );
+    for (const device of results) {
+      if (!device || seenIds.has(device.id)) continue;
+      seenIds.add(device.id);
+      devices.push(device);
+    }
+    if (devices.length > 0) break;
+  }
+
+  trace?.('quick_multi_prefix_done', {
+    found: devices.length,
     names: devices.map((d) => d.name),
   });
 

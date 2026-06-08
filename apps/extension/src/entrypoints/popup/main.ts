@@ -10,7 +10,7 @@ const STRINGS = {
     scan: '扫描',
     selectDevice: '选择设备…',
     addIp: '添加 IP',
-    manualIpPlaceholder: '电视 IP，如 192.168.1.100',
+    manualIpPlaceholder: '电视 IP，如 192.168.0.103',
     manualVideoUrlPlaceholder: 'http(s) 视频直链',
     videoRefreshTitle: '重新检测视频',
     deviceHint:
