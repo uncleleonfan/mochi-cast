@@ -1,6 +1,6 @@
 import type { Locale } from '@/lib/i18n';
 import { defaultLocale, getContent, localePath, locales } from '@/lib/i18n';
-import { getSiteUrl, SITE_LOGO } from '@/lib/site';
+import { getSiteUrl, SITE_LOGO_LG } from '@/lib/site';
 import type { Metadata } from 'next';
 
 export type SeoPage = 'home' | 'download' | 'guide' | 'compatibility' | 'privacy';
@@ -45,7 +45,7 @@ export function buildPageMetadata(locale: Locale, page: SeoPage): Metadata {
       type: 'website',
       images: [
         {
-          url: SITE_LOGO,
+          url: SITE_LOGO_LG,
           width: 128,
           height: 128,
           alt: c.seo.siteName,
@@ -56,7 +56,7 @@ export function buildPageMetadata(locale: Locale, page: SeoPage): Metadata {
       card: 'summary',
       title,
       description,
-      images: [SITE_LOGO],
+      images: [SITE_LOGO_LG],
     },
     robots: {
       index: true,

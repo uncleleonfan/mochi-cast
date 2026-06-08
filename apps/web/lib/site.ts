@@ -4,7 +4,18 @@ export const DOWNLOAD_ZIP = `${GITHUB_REPO}/releases/download/v1.0.0/mochi-cast-
 export const ISSUES_URL = `${GITHUB_REPO}/issues`;
 export const SUPPORT_EMAIL = 'support@mashutouping.com';
 export const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}`;
-export const SITE_LOGO = '/logo.png';
+export const SITE_LOGO_SM = '/logo-64.png';
+export const SITE_LOGO_MD = '/logo-160.png';
+export const SITE_LOGO_LG = '/logo-512.png';
+
+/** @deprecated Use sized logos via siteLogoSrc() */
+export const SITE_LOGO = SITE_LOGO_LG;
+
+export function siteLogoSrc(displaySize: number): string {
+  if (displaySize <= 40) return SITE_LOGO_SM;
+  if (displaySize <= 96) return SITE_LOGO_MD;
+  return SITE_LOGO_LG;
+}
 export const CHROME_WEB_STORE_ID = 'eopgdjlalbnodjmamojajnjihiibalbo';
 
 export function chromeWebStoreUrl(locale: 'zh' | 'en' = 'zh'): string {

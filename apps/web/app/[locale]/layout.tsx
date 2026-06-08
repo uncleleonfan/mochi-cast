@@ -4,7 +4,7 @@ import { Footer } from '@/components/footer';
 import { GoogleAnalytics } from '@/components/google-analytics';
 import { Header } from '@/components/header';
 import { getContent, isLocale, locales, type Locale } from '@/lib/i18n';
-import { getSiteUrl, SITE_LOGO } from '@/lib/site';
+import { getSiteUrl, SITE_LOGO_LG, SITE_LOGO_SM } from '@/lib/site';
 import '../globals.css';
 
 export function generateStaticParams() {
@@ -26,8 +26,8 @@ export async function generateMetadata({
     authors: [{ name: c.seo.siteName, url: getSiteUrl() }],
     creator: c.seo.siteName,
     icons: {
-      icon: [{ url: SITE_LOGO, sizes: 'any', type: 'image/png' }],
-      apple: [{ url: SITE_LOGO, sizes: '512x512', type: 'image/png' }],
+      icon: [{ url: SITE_LOGO_LG, sizes: '512x512', type: 'image/png' }],
+      apple: [{ url: SITE_LOGO_LG, sizes: '512x512', type: 'image/png' }],
     },
     manifest: '/manifest.webmanifest',
     verification: {
@@ -53,7 +53,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale === 'zh' ? 'zh-CN' : 'en'}>
       <head>
-        <link rel="preload" href={SITE_LOGO} as="image" type="image/png" />
+        <link rel="preload" href={SITE_LOGO_SM} as="image" type="image/png" />
       </head>
       <body className="min-h-screen antialiased">
         <Header locale={locale} />
