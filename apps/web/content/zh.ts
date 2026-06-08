@@ -110,7 +110,7 @@ export const content: SiteContent = {
       '国内用户推荐下载 ZIP 安装包，在浏览器中加载已解压的扩展程序即可使用；Chrome 网上应用店为可选补充渠道。',
     zipSectionTitle: 'ZIP 安装包',
     zipSectionBadge: '推荐 · 国内用户',
-    zipButton: '下载 v1.0.0 (ZIP)',
+    zipButton: '下载 v1.0.1 (ZIP)',
     releaseLink: '查看 Release 说明',
     zipNote: '适用于 Chrome、Edge 等 Chromium 浏览器。下载后解压，在 chrome://extensions 开启「开发者模式」→「加载已解压的扩展程序」。',
     chromeSectionTitle: 'Chrome 网上应用店',
@@ -121,7 +121,7 @@ export const content: SiteContent = {
     reqItems: ['Google Chrome 120+ 或 Microsoft Edge 120+', '电脑与电视同一 Wi-Fi', '电视支持 DLNA Media Renderer'],
     stepsTitle: '安装步骤',
     steps: [
-      '下载 mochi-cast-1.0.0-chrome.zip 并解压到文件夹',
+      '下载 mochi-cast-1.0.1-chrome.zip 并解压到文件夹',
       '打开 Chrome，访问 chrome://extensions',
       '开启右上角「开发者模式」',
       '点击「加载已解压的扩展程序」，选择解压后的文件夹',

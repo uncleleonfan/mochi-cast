@@ -109,7 +109,7 @@ export const content: SiteContent = {
       'Download the ZIP package and load the unpacked extension in Chrome or Edge. The Chrome Web Store is an optional alternative.',
     zipSectionTitle: 'ZIP package',
     zipSectionBadge: 'Recommended',
-    zipButton: 'Download v1.0.0 (ZIP)',
+    zipButton: 'Download v1.0.1 (ZIP)',
     releaseLink: 'View Release Notes',
     zipNote:
       'Works with Chrome, Edge, and other Chromium browsers. Extract the zip, open chrome://extensions, enable Developer mode, then Load unpacked.',
@@ -125,7 +125,7 @@ export const content: SiteContent = {
     ],
     stepsTitle: 'Installation',
     steps: [
-      'Download mochi-cast-1.0.0-chrome.zip and extract it',
+      'Download mochi-cast-1.0.1-chrome.zip and extract it',
       'Open Chrome and go to chrome://extensions',
       'Enable Developer mode (top right)',
       'Click Load unpacked and select the extracted folder',

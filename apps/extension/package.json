@@ -1,6 +1,6 @@
 {
   "name": "@mochi-cast/extension",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Mochi Cast browser extension",
   "type": "module",
