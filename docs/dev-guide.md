@@ -176,3 +176,5 @@ Chrome Web Store 上架需：
 在 Vercel 设置 **`NEXT_PUBLIC_SITE_URL=https://mashutouping.com`**，用于 canonical、Open Graph、sitemap 与 hreflang。部署后在 [Google Search Console](https://search.google.com/search-console) 提交 `https://mashutouping.com/sitemap.xml`。
 
 **百度搜索：** 站点已添加百度站长验证 meta。部署后在 [百度站长平台](https://ziyuan.baidu.com/) 点击验证，并提交 sitemap：`https://mashutouping.com/sitemap.xml`。
+
+若 HTML 标签验证报 **307**，原因是根路径 `/` 会跳转到 `/zh`。已改为 308 绝对地址跳转；也可改用**文件验证**，访问 `https://www.mashutouping.com/baidu_verify_codeva-FujtwYt0up.html`（文件在 `apps/web/public/`）。
