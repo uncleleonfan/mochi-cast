@@ -1,6 +1,6 @@
 import type { Locale } from '@/lib/i18n';
 import { getContent } from '@/lib/i18n';
-import { DOWNLOAD_ZIP, RELEASE_URL } from '@/lib/site';
+import { chromeWebStoreUrl, DOWNLOAD_ZIP, RELEASE_URL } from '@/lib/site';
 
 export function DownloadCard({ locale }: { locale: Locale }) {
   const d = getContent(locale).download;
@@ -11,8 +11,16 @@ export function DownloadCard({ locale }: { locale: Locale }) {
       <p className="mb-6 text-[var(--color-muted)]">{d.description}</p>
       <div className="flex flex-wrap gap-4">
         <a
-          href={DOWNLOAD_ZIP}
+          href={chromeWebStoreUrl(locale)}
+          target="_blank"
+          rel="noopener noreferrer"
           className="rounded-xl bg-brand px-6 py-3 font-semibold text-white transition hover:bg-brand-hover"
+        >
+          {d.chromeStoreButton}
+        </a>
+        <a
+          href={DOWNLOAD_ZIP}
+          className="rounded-xl border border-[var(--color-border)] px-6 py-3 font-semibold transition hover:border-brand"
         >
           {d.zipButton}
         </a>

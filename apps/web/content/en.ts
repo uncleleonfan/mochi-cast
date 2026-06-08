@@ -27,7 +27,7 @@ export const content: SiteContent = {
       download: {
         title: 'Download Mochi Cast - Chrome & Edge DLNA Casting Extension',
         description:
-          'Download the Mochi Cast browser extension (.zip or GitHub Release) for Chrome and Edge. Cast web videos to DLNA TVs on your local network.',
+          'Install Mochi Cast from the Chrome Web Store, or download the .zip from GitHub Releases for Chrome/Edge DLNA casting.',
       },
       guide: {
         title: 'User Guide - Mochi Cast DLNA Setup & FAQ',
@@ -59,7 +59,8 @@ export const content: SiteContent = {
     subtitle: '麻薯投屏',
     description:
       'An open-source browser extension that casts web videos to your smart TV over Wi-Fi — supporting Xiaomi, TCL, Sony, LG, and other DLNA renderers.',
-    download: 'Download Extension',
+    chromeStore: 'Chrome Web Store',
+    download: 'Other downloads',
     github: 'View on GitHub',
   },
   features: {
@@ -101,10 +102,12 @@ export const content: SiteContent = {
   },
   download: {
     title: 'Download & Install',
-    description: 'Get the latest extension from GitHub Releases, or build from source.',
+    description:
+      'Install from the Chrome Web Store with one click, or download the extension package from GitHub Releases / build from source.',
+    chromeStoreButton: 'Install from Chrome Web Store',
     zipButton: 'Download v1.0.0 (ZIP)',
     releaseLink: 'View Release Notes',
-    storeNote: 'Chrome Web Store listing coming soon',
+    storeNote: 'Chrome Web Store is the recommended install method and receives automatic updates.',
     requirements: 'Requirements',
     reqItems: [
       'Google Chrome 120+ or Microsoft Edge 120+',

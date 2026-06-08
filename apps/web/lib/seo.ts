@@ -1,6 +1,6 @@
 import type { Locale } from '@/lib/i18n';
 import { defaultLocale, getContent, localePath, locales } from '@/lib/i18n';
-import { getSiteUrl } from '@/lib/site';
+import { getSiteUrl, chromeWebStoreUrl } from '@/lib/site';
 import type { Metadata } from 'next';
 
 export type SeoPage = 'home' | 'download' | 'guide' | 'compatibility' | 'privacy';
@@ -84,7 +84,7 @@ export function buildSoftwareApplicationJsonLd(locale: Locale) {
     },
     description: c.hero.description,
     url: `${siteUrl}${localePath(locale)}`,
-    downloadUrl: `${siteUrl}${localePath(locale, 'download')}`,
+    downloadUrl: chromeWebStoreUrl(locale),
     softwareHelp: `${siteUrl}${localePath(locale, 'guide')}`,
     author: {
       '@type': 'Organization',

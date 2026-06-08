@@ -23,6 +23,7 @@ export interface SiteContent {
     title: string;
     subtitle: string;
     description: string;
+    chromeStore: string;
     download: string;
     github: string;
   };
@@ -39,6 +40,7 @@ export interface SiteContent {
   download: {
     title: string;
     description: string;
+    chromeStoreButton: string;
     zipButton: string;
     releaseLink: string;
     storeNote: string;

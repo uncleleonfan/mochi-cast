@@ -4,6 +4,11 @@ export const DOWNLOAD_ZIP = `${GITHUB_REPO}/releases/download/v1.0.0/mochi-cast-
 export const ISSUES_URL = `${GITHUB_REPO}/issues`;
 export const SUPPORT_EMAIL = 'support@mashutouping.com';
 export const SUPPORT_MAILTO = `mailto:${SUPPORT_EMAIL}`;
+export const CHROME_WEB_STORE_ID = 'eopgdjlalbnodjmamojajnjihiibalbo';
+
+export function chromeWebStoreUrl(locale: 'zh' | 'en' = 'zh'): string {
+  return `https://chromewebstore.google.com/detail/${CHROME_WEB_STORE_ID}?hl=${locale}`;
+}
 
 /** Canonical production URL. Override with NEXT_PUBLIC_SITE_URL on Vercel. */
 export function getSiteUrl(): string {

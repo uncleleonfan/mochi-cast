@@ -35,7 +35,7 @@ pnpm build
 # 选择 apps/extension/.output/chrome-mv3
 ```
 
-**Chrome Web Store**（即将上架）
+**[Chrome 网上应用店](https://chromewebstore.google.com/detail/eopgdjlalbnodjmamojajnjihiibalbo)**（推荐）
 
 ### 使用方法
 
@@ -104,6 +104,10 @@ Chrome MV3 扩展无法使用 UDP 组播，因此采用**子网 HTTP 探测**替
 - Playback controls (play / pause / stop)
 - Open source, privacy-first (local storage only)
 - Chinese & English UI
+
+### Install
+
+**[Chrome Web Store](https://chromewebstore.google.com/detail/eopgdjlalbnodjmamojajnjihiibalbo?hl=en)** (recommended)
 
 ### Install from source
 

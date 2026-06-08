@@ -28,7 +28,7 @@ export const content: SiteContent = {
       download: {
         title: '下载麻薯投屏 - Chrome / Edge DLNA 投屏扩展',
         description:
-          '免费下载麻薯投屏浏览器扩展（.zip 或 GitHub Release），支持 Chrome、Edge，将网页视频投送到局域网 DLNA 电视。',
+          '从 Chrome 网上应用店安装麻薯投屏，或下载 GitHub Release 扩展包，支持 Chrome、Edge DLNA 投屏。',
       },
       guide: {
         title: '使用指南 - 麻薯投屏 DLNA 投屏教程与常见问题',
@@ -60,7 +60,8 @@ export const content: SiteContent = {
     subtitle: 'Mochi Cast',
     description:
       '开源浏览器扩展，让你在同一 Wi-Fi 下将网页视频一键投送到客厅智能电视——支持小米、TCL、Sony、LG 等 DLNA 电视。',
-    download: '下载扩展',
+    chromeStore: 'Chrome 网上应用店',
+    download: '其他下载方式',
     github: '查看 GitHub',
   },
   features: {
@@ -102,10 +103,11 @@ export const content: SiteContent = {
   },
   download: {
     title: '下载安装',
-    description: '从 GitHub Release 下载最新版扩展包，或从源码构建。',
+    description: '推荐从 Chrome 网上应用店一键安装；也可从 GitHub Release 下载扩展包或从源码构建。',
+    chromeStoreButton: '在 Chrome 网上应用店安装',
     zipButton: '下载 v1.0.0 (ZIP)',
     releaseLink: '查看 Release 说明',
-    storeNote: 'Chrome Web Store 版本即将上架',
+    storeNote: 'Chrome 网上应用店为推荐安装方式，自动接收更新。',
     requirements: '系统要求',
     reqItems: ['Google Chrome 120+ 或 Microsoft Edge 120+', '电脑与电视同一 Wi-Fi', '电视支持 DLNA Media Renderer'],
     stepsTitle: '安装步骤',
