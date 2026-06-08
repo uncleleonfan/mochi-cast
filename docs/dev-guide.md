@@ -174,3 +174,5 @@ Chrome Web Store 上架需：
 ### SEO
 
 在 Vercel 设置 **`NEXT_PUBLIC_SITE_URL=https://mashutouping.com`**，用于 canonical、Open Graph、sitemap 与 hreflang。部署后在 [Google Search Console](https://search.google.com/search-console) 提交 `https://mashutouping.com/sitemap.xml`。
+
+**百度搜索：** 站点已添加百度站长验证 meta。部署后在 [百度站长平台](https://ziyuan.baidu.com/) 点击验证，并提交 sitemap：`https://mashutouping.com/sitemap.xml`。

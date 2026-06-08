@@ -30,6 +30,11 @@ export async function generateMetadata({
       apple: [{ url: '/icons/icon128.png', sizes: '128x128', type: 'image/png' }],
     },
     manifest: '/manifest.webmanifest',
+    verification: {
+      other: {
+        'baidu-site-verification': 'codeva-FujtwYt0up',
+      },
+    },
   };
 }
 
