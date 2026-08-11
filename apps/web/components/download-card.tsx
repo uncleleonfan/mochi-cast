@@ -1,6 +1,7 @@
 import type { Locale } from '@/lib/i18n';
 import { getContent } from '@/lib/i18n';
 import { chromeWebStoreUrl, DOWNLOAD_ZIP, RELEASE_URL } from '@/lib/site';
+import { TrackedLink } from './tracked-link';
 
 export function DownloadCard({ locale }: { locale: Locale }) {
   const d = getContent(locale).download;
@@ -20,20 +21,26 @@ export function DownloadCard({ locale }: { locale: Locale }) {
           </span>
         </div>
         <div className="flex flex-wrap gap-4">
-          <a
+          <TrackedLink
+            variant="a"
             href={DOWNLOAD_ZIP}
+            eventAction="download_zip"
+            eventCategory="download_card"
             className="rounded-xl bg-brand px-6 py-3 font-semibold text-white transition hover:bg-brand-hover"
           >
             {d.zipButton}
-          </a>
-          <a
+          </TrackedLink>
+          <TrackedLink
+            variant="a"
             href={RELEASE_URL}
             target="_blank"
             rel="noopener noreferrer"
+            eventAction="release_notes"
+            eventCategory="download_card"
             className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-3 font-semibold transition hover:border-brand"
           >
             {d.releaseLink}
-          </a>
+          </TrackedLink>
         </div>
         <p className="mt-4 text-sm leading-relaxed text-[var(--color-muted)]">{d.zipNote}</p>
       </section>
@@ -41,14 +48,17 @@ export function DownloadCard({ locale }: { locale: Locale }) {
       <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
         <h2 className="mb-2 text-lg font-semibold text-[var(--color-muted)]">{d.chromeSectionTitle}</h2>
         <p className="mb-4 text-sm leading-relaxed text-[var(--color-muted)]">{d.chromeSectionDescription}</p>
-        <a
+        <TrackedLink
+          variant="a"
           href={chromeWebStoreUrl(locale)}
           target="_blank"
           rel="noopener noreferrer"
+          eventAction="chrome_store"
+          eventCategory="download_card"
           className="inline-flex rounded-xl border border-[var(--color-border)] px-5 py-2.5 text-sm font-semibold transition hover:border-brand"
         >
           {d.chromeStoreButton}
-        </a>
+        </TrackedLink>
       </section>
     </div>
   );

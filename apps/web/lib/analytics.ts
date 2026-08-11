@@ -13,3 +13,17 @@ declare global {
 export function trackPageView(path: string, measurementId: string) {
   window.gtag?.('config', measurementId, { page_path: path });
 }
+
+export function trackEvent(
+  action: string,
+  category: string,
+  label?: string,
+  value?: number,
+) {
+  if (!isAnalyticsEnabled()) return;
+  window.gtag?.('event', action, {
+    event_category: category,
+    event_label: label,
+    value,
+  });
+}

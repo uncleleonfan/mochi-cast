@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import type { Locale } from '@/lib/i18n';
 import { getContent, localePath } from '@/lib/i18n';
+import { trackEvent } from '@/lib/analytics';
 import { GITHUB_REPO } from '@/lib/site';
 import { LocaleSwitcher } from './locale-switcher';
 import { SiteLogo } from './site-logo';
@@ -38,6 +39,7 @@ export function Header({ locale }: { locale: Locale }) {
               className={`text-sm transition-colors hover:text-brand ${
                 pathname === localePath(locale, item.path) ? 'text-brand font-medium' : 'text-[var(--color-muted)]'
               }`}
+              onClick={() => trackEvent('nav_click', 'header_nav', item.key)}
             >
               {c.nav[item.key]}
             </Link>
@@ -47,6 +49,7 @@ export function Header({ locale }: { locale: Locale }) {
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-[var(--color-muted)] hover:text-brand"
+            onClick={() => trackEvent('github', 'header_nav')}
           >
             {c.nav.github}
           </a>
@@ -69,13 +72,19 @@ export function Header({ locale }: { locale: Locale }) {
             <Link
               key={item.key}
               href={localePath(locale, item.path)}
-              onClick={() => setOpen(false)}
+              onClick={() => { setOpen(false); trackEvent('nav_click', 'header_nav_mobile', item.key); }}
               className="text-sm"
             >
               {c.nav[item.key]}
             </Link>
           ))}
-          <a href={GITHUB_REPO} target="_blank" rel="noopener noreferrer" className="text-sm">
+          <a
+            href={GITHUB_REPO}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm"
+            onClick={() => trackEvent('github', 'header_nav_mobile')}
+          >
             {c.nav.github}
           </a>
           <LocaleSwitcher locale={locale} />

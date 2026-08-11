@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import type { Locale } from '@/lib/i18n';
 import { getContent, localePath } from '@/lib/i18n';
 import { GITHUB_REPO, RELEASE_URL, SUPPORT_EMAIL, SUPPORT_MAILTO } from '@/lib/site';
+import { TrackedLink } from './tracked-link';
 
 export function Footer({ locale }: { locale: Locale }) {
   const c = getContent(locale);
@@ -15,21 +15,55 @@ export function Footer({ locale }: { locale: Locale }) {
           <p className="mt-2 text-xs text-[var(--color-muted)]">{c.footer.license}</p>
         </div>
         <div className="flex flex-wrap gap-4 text-sm">
-          <Link href={localePath(locale, 'download')} className="hover:text-brand">
+          <TrackedLink
+            variant="link"
+            href={localePath(locale, 'download')}
+            eventAction="download"
+            eventCategory="footer"
+            className="hover:text-brand"
+          >
             {c.nav.download}
-          </Link>
-          <Link href={localePath(locale, 'privacy')} className="hover:text-brand">
+          </TrackedLink>
+          <TrackedLink
+            variant="link"
+            href={localePath(locale, 'privacy')}
+            eventAction="privacy"
+            eventCategory="footer"
+            className="hover:text-brand"
+          >
             {c.nav.privacy}
-          </Link>
-          <a href={SUPPORT_MAILTO} className="hover:text-brand">
+          </TrackedLink>
+          <TrackedLink
+            variant="a"
+            href={SUPPORT_MAILTO}
+            eventAction="email"
+            eventCategory="footer"
+            className="hover:text-brand"
+          >
             {SUPPORT_EMAIL}
-          </a>
-          <a href={RELEASE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-brand">
+          </TrackedLink>
+          <TrackedLink
+            variant="a"
+            href={RELEASE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            eventAction="release"
+            eventCategory="footer"
+            className="hover:text-brand"
+          >
             Release
-          </a>
-          <a href={GITHUB_REPO} target="_blank" rel="noopener noreferrer" className="hover:text-brand">
+          </TrackedLink>
+          <TrackedLink
+            variant="a"
+            href={GITHUB_REPO}
+            target="_blank"
+            rel="noopener noreferrer"
+            eventAction="github"
+            eventCategory="footer"
+            className="hover:text-brand"
+          >
             GitHub
-          </a>
+          </TrackedLink>
         </div>
       </div>
     </footer>
